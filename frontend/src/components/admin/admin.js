@@ -5,7 +5,6 @@ import Queue from "./queue";
 import Dashboard from "./dashboard";
 import SendPrescription from "./sendprescription";
 import Subscription from "./subscription";
-import Customers from "./customers";
 import Profile from "./profile";
 import Users from "./users";
 import Prescription from "./prescription";
@@ -18,6 +17,16 @@ import addQueue from "./addQueue";
 import SendPrescriptionUpdated from "./sendPrescriptionUpdated";
 import PrescriptionPdf from "./prescriptionPdf";
 import Doctors from "./AdminPanel/Doctors";
+import Customers from "./customers";
+import Doctor from "./AdminPanel/Doctor";
+import PatientDetails from "./AdminPanel/PatientDetails";
+import PatientPrescDetail from "./AdminPanel/PatientPrescDetail";
+import MyRecords from "./UserPanel/MyRecords";
+import GlobalCustomers from "./AdminPanel/GlobalCustomers";
+import Access from "./UserPanel/Access";
+import Review from "./UserPanel/Review";
+import AskAccessPermission from "./AdminPanel/AskAccessPermission";
+import VerifyAccessOtp from "./AdminPanel/VerifyAccessOtp";
 
 const loading = () => <div></div>;
 class Admin extends Component {
@@ -67,6 +76,29 @@ class Admin extends Component {
 
           {/* New Admin Pages */}
           <Route exact path="/app/doctors" component={Doctors} />
+          <Route exact path="/app/customers" component={GlobalCustomers} />
+          <Route exact path="/app/doctor/:id" component={Doctor} />
+          <Route exact path="/app/patient/:id" component={PatientDetails} />
+          <Route
+            exact
+            path="/app/patient/presc/:id"
+            component={PatientPrescDetail}
+          />
+
+          {/*New User Panel Pages*/}
+          <Route exact path="/app/myrecords" component={MyRecords} />
+          <Route exact path="/app/access" component={Access} />
+          <Route
+            exact
+            path="/app/askaccess/:id"
+            component={AskAccessPermission}
+          />
+          <Route
+            exact
+            path="/app/verifyaccess/:id"
+            component={VerifyAccessOtp}
+          />
+          <Route exact path="/app/review/:id" component={Review} />
 
           <Route
             exact

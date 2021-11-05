@@ -32,3 +32,20 @@
 .modal-dialog {
   max-width: 70%;
 }
+
+//Access Box---
+.access_box {
+  min-height: 10vh;
+  background-color: #e0f7fb;
+  color: #0a58ca;
+}
+
+.access_box .MuiGrid-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.access_box .btn-success {
+  background-color: #0a58ca;
+}

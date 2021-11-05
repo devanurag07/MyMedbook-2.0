@@ -46,6 +46,7 @@ class SmartTable extends Component {
     this.currentRequest = getCall(url).then((r) => {
       //console.log(r)
       this.setPaginationDetails(r.data);
+      console.log(r.data);
     });
   }
   constructURL(offset, end, filterParams) {
@@ -250,7 +251,7 @@ class SmartTable extends Component {
                   >
                     {/* <td scope="row">{rowIndex + 1}</td> */}
                     {this.props.cols.map((column, i) => (
-                      <td key={i}>
+                      <td key={i} style={{ ...column.styles }}>
                         {/* {rowItem[column.dataField]} */}
                         {this._switchPart(column, rowItem)}
                       </td>

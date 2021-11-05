@@ -1,17 +1,16 @@
 import React, { useRef } from "react";
 import SmartTable from "../../../ui/smart-table";
 
-const Doctors = () => {
+const Doctors = (props) => {
   const recordPerPage = 15;
   const defaultParam = {
     status: 1,
   };
 
   const actionHandler = (param) => {
+    console.log(param);
     if (param.label === "View") {
-      this.props.history.push(
-        `/app/send-prescription-updated/${param.rowData.id}`
-      );
+      props.history.push(`/app/doctor/${param.rowData.id}`);
     } else if (param.label === "Delete") {
       this.setState((state) => ({
         isDeleteModalOpen: !state.isDeleteModalOpen,
@@ -26,7 +25,7 @@ const Doctors = () => {
   };
   const columns = [
     {
-      dataField: "customer_name",
+      dataField: "full_name",
       label: "Doctor Name",
       type: "text",
       styles: {
@@ -34,7 +33,7 @@ const Doctors = () => {
       },
     },
     {
-      dataField: "email",
+      dataField: "clinic_name",
       label: "Clinic Name",
       type: "text",
       styles: {
@@ -42,7 +41,7 @@ const Doctors = () => {
       },
     },
     {
-      dataField: "mobile",
+      dataField: "email",
       label: "Email",
       type: "text",
       styles: {
@@ -60,8 +59,7 @@ const Doctors = () => {
         {
           label: "View",
           className: "btn btn-success btn-sm me-2",
-          icon: true,
-          iconClass: "fa fa-eye",
+          icon: false,
         },
       ],
       type: "action",
@@ -75,7 +73,7 @@ const Doctors = () => {
       {" "}
       <SmartTable
         ref={smartTable}
-        fetchUrl="api/queue/"
+        fetchUrl="api/users/get-doctors/"
         defaultParam={defaultParam}
         actionHandler={actionHandler}
         recordPerPage={recordPerPage}

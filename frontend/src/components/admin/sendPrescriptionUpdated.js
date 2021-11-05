@@ -16,12 +16,27 @@ import { FaCaretDown } from "react-icons/fa";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import PrescriptionPdf from "./prescriptionPdf";
 import { jsPDF } from "jspdf";
+import axios from "axios";
+
+import { Grid, makeStyles } from "@material-ui/core";
+import { PrescriptionListItem } from "./AdminPanel/PatientDetails";
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    "& .MuiGrid-item": {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+  },
+}));
 
 class SendPrescriptionUpdated extends Component {
   recordPerPage = 5;
   constructor(props) {
     super(props);
     this.medindex = 0;
+
     this.getMedIndex = this.getMedIndex.bind(this);
     this.getMedicinesList = this.getMedicinesList.bind(this);
     this.removeItem = this.removeItem.bind(this);
@@ -49,6 +64,11 @@ class SendPrescriptionUpdated extends Component {
 
       printPdfModal: false,
       queueData: {},
+      accessData: {
+        patientData: {
+          prev_prescs: [],
+        },
+      },
     };
 
     this.props.setBData([
@@ -110,17 +130,38 @@ class SendPrescriptionUpdated extends Component {
     }
     //this.getPrescriptionLookup();
   }
+
   getQueueDetails(queueId) {
     getCall(BASE_URL + `api/queue/${queueId}/`).then((r) => {
       let response = r.data;
+
       if (response.status != 0) {
         this.props.history.push(`/app/dashboard`);
       }
       this.setState({
         queueData: response,
       });
+
+      const customerID = response.customer;
+      axios
+        .get(`${BASE_URL}api/doctors_m/${customerID}/get-customer-detail/`)
+        .then((resp) => {
+          this.setState({ accessData: resp.data });
+          console.log(resp.data);
+        });
     });
   }
+
+  askPermission(customerID) {
+    postCall(BASE_URL + `api/doctors_m/${customerID}/send-accessrequest/`).then(
+      (resp) => {
+        console.log("Asked");
+        console.log(resp.data);
+        this.setState({ accessData: resp.data });
+      }
+    );
+  }
+
   notify = (msg) => toast(msg);
   submitHandler = (event, values) => {
     event.preventDefault();
@@ -236,9 +277,9 @@ class SendPrescriptionUpdated extends Component {
             <h4 className="">Send Prescription Updated</h4>
             <AvForm onValidSubmit={this.submitHandler}>
               <div className="row">
-                <div className="col-lg-6">
+                <div className="col-lg-4">
                   <div className="form-group">
-                    <label className="required">Customer name</label>
+                    <label className="required">Patient name</label>
                     <AvInput
                       bsSize="sm"
                       type="text"
@@ -254,7 +295,7 @@ class SendPrescriptionUpdated extends Component {
                     />
                   </div>
                 </div>
-                <div className="col-lg-6">
+                <div className="col-lg-4">
                   <div className="form-group">
                     <label className="required">Mobile</label>
                     <AvInput
@@ -270,7 +311,7 @@ class SendPrescriptionUpdated extends Component {
                     />
                   </div>
                 </div>
-                <div className="col-lg-6">
+                <div className="col-lg-4">
                   <div className="form-group">
                     <label className="required">Clinic name</label>
                     <AvInput
@@ -291,7 +332,7 @@ class SendPrescriptionUpdated extends Component {
                     />
                   </div>
                 </div>
-                <div className="col-lg-6">
+                <div className="col-lg-4">
                   <div className="form-group">
                     <label className="required">Date</label>
                     <AvInput
@@ -304,57 +345,110 @@ class SendPrescriptionUpdated extends Component {
                     />
                   </div>
                 </div>
-                <div className="col-lg-12">
-                  <div className="form-group">
-                    <AutoComplete
-                      multiple
-                      placeholder="Search Prescription"
-                      value={this.state.prescription}
-                      appendTo="self"
-                      inputClassName="autocomplete"
-                      suggestions={this.state.filteredCustomers}
-                      completeMethod={this.searchCustomer}
-                      field="name"
-                      onChange={(e) => {
-                        const prescriptionList = e.value;
 
-                        console.log("hekllo");
-                        this.getMedicinesList();
-                        const prevPrescription = this.state.prescription
-                          ? this.state.prescription
-                          : [];
+                <Grid className="access_box" container>
+                  {this.state.accessData.status == "no access" ? (
+                    <Grid className="no-access" container>
+                      <Grid item sm={3}></Grid>
+                      <Grid item sm={6}>
+                        You will be able to access patients data only when the
+                        patients gives you access
+                      </Grid>
+                      <Grid item sm={3}>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() =>
+                            this.askPermission(this.state.queueData.customer)
+                          }
+                        >
+                          Ask permission
+                        </button>
+                      </Grid>
+                    </Grid>
+                  ) : (
+                    ""
+                  )}
 
-                        // if person removes the medicine
-                        if (prevPrescription.length > prescriptionList.length) {
-                          const newList = prevPrescription.filter(
-                            (prevPresc) => {
-                              for (let currentPresc of prescriptionList) {
-                                if (currentPresc.id == prevPresc.id) {
-                                  return true;
-                                }
-                              }
-                              return false;
-                            }
-                          );
+                  {this.state.accessData.status == "pending" ? (
+                    <Grid className="no-access" container>
+                      <Grid item sm={3}></Grid>
+                      <Grid item sm={6}>
+                        You have asked for the permission but user did'nt
+                        accepeted your request (Pending)
+                      </Grid>
+                      <Grid item sm={3}></Grid>
+                    </Grid>
+                  ) : (
+                    ""
+                  )}
 
-                          this.setState({ prescription: newList });
-                        } else if (
-                          // if person adds the medicine
+                  {this.state.accessData.status == "has_access" ? (
+                    <Grid className="has-access" container>
+                      <h6 style={{ color: "#0A58CA" }}>
+                        Previous Prescriptions
+                      </h6>
+                      <Grid
+                        item
+                        sm={12}
+                        style={{
+                          marginTop: "1em",
+                          flexDirection: "column",
+                          alignItems: "unset",
+                        }}
+                      >
+                        {this.state.accessData.patientData.prev_prescs.map(
+                          (prescription) => {
+                            return (
+                              <PrescriptionListItem
+                                prescription={prescription}
+                              />
+                            );
+                          }
+                        )}
+                      </Grid>
+                    </Grid>
+                  ) : (
+                    ""
+                  )}
+                </Grid>
 
-                          prevPrescription.length < prescriptionList.length
-                        ) {
-                          const newPresc =
-                            prescriptionList[prescriptionList.length - 1];
+                <div className="row">
+                  <div className="col-lg-12">
+                    <div className="form-group">
+                      <label>Purpose Of Visit</label>
+                      <AvInput
+                        type="textarea"
+                        rows={5}
+                        name="povd"
+                        className="form-control bs"
+                      />
+                    </div>
+                  </div>
 
-                          newPresc.idx = this.getMedIndex();
-                          this.setState({
-                            prescription: [...prevPrescription, newPresc],
-                          });
-                        }
-                      }}
-                    />
+                  <div className="col-lg-6">
+                    <div className="form-group">
+                      <label>Symptoms</label>
+                      <AvInput
+                        type="textarea"
+                        rows={5}
+                        name="symptoms"
+                        className="form-control bs"
+                      />
+                    </div>
+                  </div>
+                  <div className="col-lg-6">
+                    <div className="form-group">
+                      <label>Note</label>
+                      <AvInput
+                        type="textarea"
+                        name="note"
+                        rows={5}
+                        className="form-control bs"
+                      />
+                    </div>
                   </div>
                 </div>
+
                 <div className="separator">OR</div>
 
                 {/* {this.state.prescriptionsData.map((column, rowIndex) => (
@@ -408,6 +502,59 @@ class SendPrescriptionUpdated extends Component {
 
                 <div className="row">
                   <div className="custom-prescription col-sm-6">
+                    <div className="col-sm-12">
+                      <div className="form-group">
+                        <AutoComplete
+                          multiple
+                          placeholder="Search Prescription"
+                          value={this.state.prescription}
+                          appendTo="self"
+                          inputClassName="autocomplete"
+                          suggestions={this.state.filteredCustomers}
+                          completeMethod={this.searchCustomer}
+                          field="name"
+                          onChange={(e) => {
+                            const prescriptionList = e.value;
+
+                            console.log("hekllo");
+                            this.getMedicinesList();
+                            const prevPrescription = this.state.prescription
+                              ? this.state.prescription
+                              : [];
+
+                            // if person removes the medicine
+                            if (
+                              prevPrescription.length > prescriptionList.length
+                            ) {
+                              const newList = prevPrescription.filter(
+                                (prevPresc) => {
+                                  for (let currentPresc of prescriptionList) {
+                                    if (currentPresc.id == prevPresc.id) {
+                                      return true;
+                                    }
+                                  }
+                                  return false;
+                                }
+                              );
+
+                              this.setState({ prescription: newList });
+                            } else if (
+                              // if person adds the medicine
+
+                              prevPrescription.length < prescriptionList.length
+                            ) {
+                              const newPresc =
+                                prescriptionList[prescriptionList.length - 1];
+
+                              newPresc.idx = this.getMedIndex();
+                              this.setState({
+                                prescription: [...prevPrescription, newPresc],
+                              });
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
                     <div className="col-sm-12">
                       <div className="form-group">
                         <label htmlFor="medicine_name" className="required">
@@ -485,18 +632,6 @@ class SendPrescriptionUpdated extends Component {
                 </div>
 
                 {/* Medicine List Box */}
-
-                <div className="col-lg-12">
-                  <div className="form-group">
-                    <label>Comment</label>
-                    <AvInput
-                      type="textarea"
-                      name="note"
-                      className="form-control bs"
-                      placeholder="Please enter comment"
-                    />
-                  </div>
-                </div>
 
                 <div className="col-lg-12">
                   <Button
