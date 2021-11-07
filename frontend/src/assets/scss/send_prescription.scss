@@ -21,12 +21,6 @@
 
   margin-bottom: 0.2em;
 }
-
-.print-pdf {
-  display: flex;
-  justify-content: end;
-}
-
 ///Modal Dialog Width
 
 .modal-dialog {
@@ -36,8 +30,11 @@
 //Access Box---
 .access_box {
   min-height: 10vh;
-  background-color: #e0f7fb;
   color: #0a58ca;
+}
+
+.bg-light-blue {
+  background-color: #e0f7fb;
 }
 
 .access_box .MuiGrid-item {
@@ -48,4 +45,19 @@
 
 .access_box .btn-success {
   background-color: #0a58ca;
+}
+
+.flex-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.action-btns {
+  display: flex;
+  justify-content: space-between;
+}
+
+.primary {
+  color: "#0A58CA";
 }

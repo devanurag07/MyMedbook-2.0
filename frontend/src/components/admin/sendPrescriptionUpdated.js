@@ -273,8 +273,8 @@ class SendPrescriptionUpdated extends Component {
     return (
       <React.Fragment>
         <div className="row mt-2 p-3">
+          <h4 className="primary-font-color">Patient Details</h4>
           <div className="col">
-            <h4 className="">Send Prescription Updated</h4>
             <AvForm onValidSubmit={this.submitHandler}>
               <div className="row">
                 <div className="col-lg-4">
@@ -348,7 +348,7 @@ class SendPrescriptionUpdated extends Component {
 
                 <Grid className="access_box" container>
                   {this.state.accessData.status == "no access" ? (
-                    <Grid className="no-access" container>
+                    <Grid className="no-access .bg-light-blue" container>
                       <Grid item sm={3}></Grid>
                       <Grid item sm={6}>
                         You will be able to access patients data only when the
@@ -391,7 +391,6 @@ class SendPrescriptionUpdated extends Component {
                         item
                         sm={12}
                         style={{
-                          marginTop: "1em",
                           flexDirection: "column",
                           alignItems: "unset",
                         }}
@@ -448,8 +447,6 @@ class SendPrescriptionUpdated extends Component {
                     </div>
                   </div>
                 </div>
-
-                <div className="separator">OR</div>
 
                 {/* {this.state.prescriptionsData.map((column, rowIndex) => (
                   <React.Fragment key={rowIndex}>
@@ -516,7 +513,6 @@ class SendPrescriptionUpdated extends Component {
                           onChange={(e) => {
                             const prescriptionList = e.value;
 
-                            console.log("hekllo");
                             this.getMedicinesList();
                             const prevPrescription = this.state.prescription
                               ? this.state.prescription
@@ -555,6 +551,9 @@ class SendPrescriptionUpdated extends Component {
                         />
                       </div>
                     </div>
+
+                    <div className="separator">OR</div>
+
                     <div className="col-sm-12">
                       <div className="form-group">
                         <label htmlFor="medicine_name" className="required">
@@ -592,7 +591,7 @@ class SendPrescriptionUpdated extends Component {
                     <div className="col-sm-12">
                       <Button
                         color="primary"
-                        className="float-end"
+                        // className="float-end"
                         type="button"
                         size="sm"
                         onClick={this.addNewPrescription.bind(this)}
@@ -603,10 +602,12 @@ class SendPrescriptionUpdated extends Component {
                   </div>
 
                   <div className="col-sm-6">
-                    <h6>Prescription</h6>
+                    <h6 className="primary" style={{ color: "#0A58CA" }}>
+                      Prescription
+                    </h6>
                     <p>
-                      Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                      Voluptates, incidunt!
+                      Please verify the medications prescribed twice before
+                      sending it to the patient
                     </p>
                     <div className="medicine-list">
                       {this.getMedicinesList().map((prescription, idx) => {
@@ -619,10 +620,23 @@ class SendPrescriptionUpdated extends Component {
                         );
                       })}
                     </div>
-                    <div className="print-pdf">
+                    <div className="action-btns">
+                      <Button
+                        size="sm"
+                        color="secondary"
+                        onClick={() =>
+                          this.props.history.push("/app/dashboard")
+                        }
+                      >
+                        Cancel
+                      </Button>
+                      <Button size="sm" color="primary" type="submit">
+                        Send
+                      </Button>
                       <Button
                         size="sm"
                         color="primary"
+                        className="float-end"
                         onClick={this.tooglePrintPdf}
                       >
                         Print
@@ -632,18 +646,6 @@ class SendPrescriptionUpdated extends Component {
                 </div>
 
                 {/* Medicine List Box */}
-
-                <div className="col-lg-12">
-                  <Button
-                    color="secondary"
-                    onClick={() => this.props.history.push("/app/dashboard")}
-                  >
-                    Cancel
-                  </Button>
-                  <Button color="primary" className="float-end" type="submit">
-                    Send
-                  </Button>
-                </div>
               </div>
             </AvForm>
           </div>
@@ -695,8 +697,8 @@ const MedicineListItem = ({ prescription, idx, removeItem }) => {
   const [showDetails, setShowDetails] = useState(false);
 
   const prescriptionInfoStyle = showDetails
-    ? { display: "flex" }
-    : { display: "none" };
+    ? { display: "flex", background: "white" }
+    : { display: "none", background: "white" };
 
   return (
     <div className="medicine">
@@ -715,8 +717,15 @@ const MedicineListItem = ({ prescription, idx, removeItem }) => {
       </div>
 
       <div className="col-sm-12 row" style={prescriptionInfoStyle}>
-        <div className="col-sm-4"> {prescription_name}</div>
-        <div className="col-sm-8">{drug_to_taken}</div>
+        <div className="col-sm-12">
+          <div className="col-sm-6"> Medicine Name :</div>
+          <div className="col-sm-6"> {prescription_name}</div>
+        </div>
+
+        <div className="col-sm-12">
+          <div className="col-sm-6"> Direction OF Intake :</div>
+          <div className="col-sm-6"> {drug_to_taken}</div>
+        </div>
       </div>
     </div>
   );

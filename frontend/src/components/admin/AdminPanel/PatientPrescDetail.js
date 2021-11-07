@@ -92,7 +92,7 @@ const useStyles2 = makeStyles((theme) => ({
   },
 }));
 
-const MedicineListItem = ({ medicine }) => {
+export const MedicineListItem = ({ medicine }) => {
   const [show, setShow] = useState(false);
   const classes = useStyles2();
 

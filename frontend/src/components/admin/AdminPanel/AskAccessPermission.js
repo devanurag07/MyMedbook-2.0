@@ -35,6 +35,12 @@ const useStyles = makeStyles((theme) => ({
     background: "#0A58CA",
     fontWeight: "606",
   },
+  mainPaper: {
+    minHeight: "63vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-around",
+  },
 }));
 
 const AskAccessPermission = (props) => {
@@ -66,9 +72,14 @@ const AskAccessPermission = (props) => {
   }, ["inp"]);
 
   return (
-    <div>
+    <div className={classes.root}>
       <ThemeProvider theme={theme}>
-        <Paper className={classes.root}>
+        <h2 className="primary-font-color">Patient Details</h2>
+        <h6>
+          Patient name{" "}
+          <span className="bold-text"> {patientData.full_name} </span>
+        </h6>
+        <Paper className={classes.mainPaper}>
           <Typography
             variant="h6"
             className="text-align-center"

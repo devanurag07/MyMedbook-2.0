@@ -86,12 +86,12 @@ export const PrescriptionListItem = ({ prescription }) => {
 
   return (
     <div>
-      <Grid container style={{ marginTop: "1em" }}>
-        <Grid item sm={2}>
+      <Grid container style={{ marginTop: "1em",,ś, }}>
+        <Grid item sm={3} style={{ justifyContent: "flex-start" }}>
           Date : - {date}
         </Grid>
-        <Grid item sm={2}>
-          Age - ......
+        <Grid item sm={1}>
+          Age - xx
         </Grid>
         <Grid item sm={3}>
           Note - {prescription.note}
@@ -100,7 +100,11 @@ export const PrescriptionListItem = ({ prescription }) => {
           Doctor - {prescription.doctor_name}
         </Grid>
 
-        <Grid item sm={2}>
+        <Grid
+          item
+          sm={2}
+          style={{ display: "flex", justifyContent: "flex-end" }}
+        >
           <Link to={`/app/patient/presc/${prescription.id}`}>
             <button className="btn btn-success btn-sm me-2">View</button>
           </Link>
