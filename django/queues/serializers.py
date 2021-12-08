@@ -18,13 +18,15 @@ class QueueSerializer(serializers.ModelSerializer):
     email = serializers.ReadOnlyField(source='customer.email')
     address = serializers.ReadOnlyField(source='customer.address_line1')
     mobile = serializers.ReadOnlyField(source='customer.profile.mobile')
+    purpose_of_visit = serializers.ReadOnlyField(
+        source='prescription_queue.purpose_of_visit')
     note = serializers.CharField(allow_null=True, allow_blank=True)
 
     class Meta:
         model = Queue
         fields = (
             'id', 'customer', 'customer_name', 'email', 'mobile', 'address', 'note', 'status',
-            'deleted', 'created_by', 'created_at')
+            'deleted', 'created_by', 'created_at', 'purpose_of_visit')
         read_only_fields = ['deleted', 'status']
 
 
@@ -52,5 +54,5 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             'id', 'customer', 'customer_name', 'clinic_name', 'queue', 'mobile', 'prescription',
             'note', 'prescription_name', 'prescription_drug_to_taken', 'deleted', 'created_by',
             'created_at', 'prescription_list',
-            'doctor_name')
+            'doctor_name', 'purpose_of_visit', 'symptoms')
         read_only_fields = ['deleted']

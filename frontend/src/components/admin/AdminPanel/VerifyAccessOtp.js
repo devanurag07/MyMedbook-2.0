@@ -8,6 +8,8 @@ import {
   TextField,
 } from "@material-ui/core";
 
+import { toast } from "react-toastify";
+
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { getCall, postCall } from "../../../helpers/axiosUtils";
 import { BASE_URL } from "../../../helpers/constants";
@@ -36,15 +38,40 @@ const VerifyAccessOtp = (props) => {
   patient_id = patient_id ? patient_id : 0;
 
   const [otpValue, setOtpValue] = useState("");
+  const [isValid, setIsValid] = useState(true);
 
   const verifyOtp = () => {
     postCall(BASE_URL + `api/doctors_m/${patient_id}/verify-otp/`, {
       otp: otpValue,
-    }).then((resp) => console.log(resp.data));
+    })
+      .then((resp) => {
+        if (resp.status == 200) {
+          if (resp.data.verified) {
+            props.history.push(`/app/patient/${patient_id}`);
+          }
+        }
+      })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          setIsValid(false);
+        }
+        if (err.response.status == 404) {
+          props.history.push(`/app/askaccess/${patient_id}`);
+        }
+      });
   };
 
   const onOtpChange = (e) => {
     setOtpValue(e.target.value);
+  };
+
+  const askPermission = (customerID) => {
+    postCall(BASE_URL + `api/doctors_m/${customerID}/send-accessrequest/`).then(
+      (resp) => {
+        // this.setState({ accessData: resp.data });\
+        toast("Otp sents");
+      }
+    );
   };
 
   const classes = useStyles();
@@ -105,21 +132,48 @@ const VerifyAccessOtp = (props) => {
           number
         </div>
         <Grid container style={{ marginTop: "1em" }}>
-          <Grid item sm={12} className="content-center">
+          <Grid
+            item
+            sm={12}
+            className="content-center"
+            style={{ display: "flex", flexDirection: "row" }}
+          >
             <TextField
               placeholder="Enter OTP..."
               onChange={onOtpChange}
               value={otpValue}
               variant="outlined"
               size="small"
+              type="number"
+              error={!isValid}
+              helperText={!isValid ? "The otp you have entered is invalid" : ""}
             />
+            <a
+              className="primary-font-color"
+              href={`#`}
+              style={{
+                borderBottom: "2px solid ",
+                marginTop: "1em",
+                marginLeft: "1em",
+              }}
+              onClick={() => askPermission(patient_id)}
+            >
+              <h6>Send Otp</h6>
+            </a>
           </Grid>
+
+          <Grid item sm={4}></Grid>
         </Grid>
         <div
           className="btn-container content-center"
           style={{ marginTop: "1em" }}
         >
-          <Button variant="contained" color="primary" size="small">
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={verifyOtp}
+          >
             Submit
           </Button>
         </div>

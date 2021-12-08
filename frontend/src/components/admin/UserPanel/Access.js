@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import SmartTable from "../../../ui/smart-table";
 import axios from "axios";
 import { BASE_URL } from "../../../helpers/constants";
@@ -9,17 +9,26 @@ const Access = (props) => {
     status: 1,
   };
 
+  const [smartTable, setSmartTable] = useState(null);
+
   const actionHandler = (param) => {
     const requestId = param.rowData.id;
 
     if (param.label === "Accept") {
       axios
         .post(BASE_URL + `api/userpanel/${requestId}/accept-request/`)
-        .then((resp) => {});
+        .then((resp) => {
+          smartTable.fetchRecords(0, recordPerPage);
+        });
     } else if (param.label === "Delete") {
       axios
         .post(BASE_URL + `api/userpanel/${requestId}/deny-request/`)
-        .then((resp) => {});
+        .then((resp) => {
+          smartTable.fetchRecords(0, recordPerPage);
+        });
+    } else if (param.label == "Review") {
+      console.log(param);
+      props.history.push(`/app/review/${param.rowData.doctor_id}`);
     }
     // Report Review Action
   };
@@ -95,27 +104,33 @@ const Access = (props) => {
         {
           label: "Accept",
           className: "btn btn-success btn-sm me-2",
-          icon: false,
+          icon: true,
+          iconClass: "fa fa-check",
         },
         {
           label: "Delete",
           className: "btn btn-danger btn-sm me-2",
           icon: true,
-          iconClass: "fa fa-trash",
+          iconClass: "fa fa-times-circle",
         },
       ],
       type: "action",
     },
   ];
-
-  const smartTable = useRef(null);
-
   return (
     <div>
       {" "}
-      <h6>Access</h6>
+      <h5 style={{ fontWeight: "505" }} className="primary-font-color">
+        Access
+      </h5>
+      <p className="primary-font-color">
+        Here are the list of doctors who have access to your medical data{" "}
+      </p>
       <SmartTable
-        ref={smartTable}
+        // ref={smartTable}
+        ref={(instance) => {
+          setSmartTable(instance);
+        }}
         fetchUrl="api/userpanel/get-myrequests"
         defaultParam={defaultParam}
         actionHandler={actionHandler}

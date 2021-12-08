@@ -1,6 +1,7 @@
 import { Grid, Input, Button, TextField } from "@material-ui/core";
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { BASE_URL } from "../../../helpers/constants";
 
 const Review = (props) => {
@@ -35,13 +36,17 @@ const Review = (props) => {
       })
       .then((resp) => {
         // setDoctorName(resp.data);
+        if (resp.status == 200) {
+          toast("Review Sent");
+          setReviewText("");
+        }
         console.log(resp.data);
       });
   };
 
   return (
     <div>
-      <h3>Review</h3>
+      <h4 className="primary-font-color">Review</h4>
       <p>Your review will be sent directly to doctor </p>
 
       <Grid container>
@@ -66,9 +71,7 @@ const Review = (props) => {
         </Grid>
       </Grid>
       <Grid container style={{ marginTop: "2em" }}>
-        <Grid item sm>
-          {reviewText}
-        </Grid>
+        <Grid item sm></Grid>
         {/* <Grid item sm={4}> */}
         <Button color="primary" variant="contained" onClick={submitHandler}>
           Submit

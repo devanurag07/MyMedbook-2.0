@@ -13,12 +13,20 @@ import ArrowDropUpIcon from "@mui/icons-material/ArrowDropUp";
 
 import IconButton from "@mui/material/IconButton";
 import { BASE_URL } from "../../../helpers/constants";
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
+import PrescriptionPdf from "../prescriptionPdf";
+import { getCall } from "../../../helpers/axiosUtils";
+import { toast } from "react-toastify";
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    marginTop: "1em",
+
     "& .valueBox": {
       minHeight: "20vh",
-      border: "1px solid gray",
+      padding: "1em",
+
+      border: "1px solid #c9c9c9",
       borderRadius: "0.2em",
     },
     "& .infoTitle": {
@@ -26,6 +34,18 @@ const useStyles = makeStyles((theme) => ({
     },
     "& .medDetails": {
       padding: "1em",
+    },
+
+    "& .mt-1": {
+      marginTop: "1em !important",
+    },
+  },
+  infoTitle: {
+    [theme.breakpoints.down("xs")]: {
+      fontSize: "0.9em",
+      fontWeight: "600",
+      fontFamily: "POPPINS",
+      color: "#5a5a5a !important",
     },
   },
 }));
@@ -39,11 +59,40 @@ const PatientPrescDetail = (props) => {
     prescription_list: [],
   });
 
+  const [queueData, setQueueData] = useState({});
+
+  const [printPdfModal, setPrintPdfModal] = useState(false);
+
   const getPrescriptionData = () => {
     const url = `${BASE_URL}api/admin_m/${presc_id}/get-prescription/`;
     axios.get(url).then((resp) => {
       setPrescriptionData(resp.data.data);
-      console.log(resp.data.data);
+      getMedicinesList();
+      console.log(resp.data);
+    });
+  };
+
+  const tooglePrintPdf = () => {
+    setPrintPdfModal(!printPdfModal);
+
+    // return { ...this.state, printPdfModal: !this.state.printPdfModal };
+  };
+
+  const getQueueDetails = (queueId) => {
+    getCall(BASE_URL + `api/queue/${queueId}/get-queue/`).then((r) => {
+      // let response = r.data;
+      // if (response.status != 0) {
+      //   props.history.push(`/app/dashboard`);
+      // }
+
+      if (r.status == 200) {
+        let queueData = r.data;
+        setQueueData(queueData);
+      } else {
+        if (r.status == 401) {
+          toast("You do not have access to queue details");
+        }
+      }
     });
   };
 
@@ -51,32 +100,109 @@ const PatientPrescDetail = (props) => {
     getPrescriptionData();
   }, ["input"]);
 
+  useEffect(() => {
+    if (prescriptionData.queue != undefined) {
+      getQueueDetails(prescriptionData.queue);
+    }
+  }, [prescriptionData.queue]);
+
+  const getMedicinesList = () => {
+    const medicines_list = [];
+    let idx = 0;
+    for (let obj of prescriptionData.prescription_list) {
+      medicines_list.push({
+        idx,
+        medicine_name: obj.name,
+        drug_to_taken: obj.drug_to_taken,
+      });
+
+      console.log(medicines_list);
+      idx += 1;
+    }
+
+    return medicines_list;
+  };
   return (
-    <div>
-      <Grid container className={classes.root} spacing={3}>
-        <Grid item sm={12}>
+    <div className={classes.root}>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
           <h6>Dr . {prescriptionData.doctor_name}</h6>
 
-          <Typography className="infoTitle">Purpose Of Visit</Typography>
-          <Typography className="valueBox"></Typography>
+          <Typography
+            className={`${classes.infoTitle} infoTitle`}
+            style={{ marginTop: "1em" }}
+          >
+            Purpose Of Visit
+          </Typography>
+          <Typography className="valueBox mt-1">
+            {prescriptionData.purpose_of_visit}
+          </Typography>
         </Grid>
-        <Grid item sm={6}>
-          <Typography className="infoTitle">Symptoms</Typography>
-          <Typography className="valueBox"></Typography>
+        <Grid item xs={6}>
+          <Typography className={`${classes.infoTitle} infoTitle`}>
+            Symptoms
+          </Typography>
+          <Typography className="valueBox mt-1">
+            {" "}
+            {prescriptionData.symptoms}
+          </Typography>
         </Grid>
-        <Grid item sm={6}>
-          <Typography className="infoTitle">Notes from Doctor</Typography>
-          <Typography className="valueBox">{prescriptionData.note}</Typography>
+        <Grid item xs={6}>
+          <Typography className={`${classes.infoTitle} infoTitle`}>
+            Notes from Doctor
+          </Typography>
+          <Typography className="valueBox mt-1">
+            {prescriptionData.note}
+          </Typography>
         </Grid>
       </Grid>
       <Grid container>
-        <Grid item sm={5}>
+        <Grid item sm={5} style={{ marginTop: "2em" }}>
           <h6>Prescription</h6>
+          <div style={{ marginTop: "1em" }}></div>
           {prescriptionData.prescription_list.map((prescription) => {
             return <MedicineListItem medicine={prescription} />;
           })}
         </Grid>
       </Grid>
+
+      <Grid container>
+        <Grid item sm={3} style={{ marginTop: "2em" }}>
+          <button
+            className="btn-primary btn-sm"
+            style={{ marginBottom: "2em" }}
+            onClick={tooglePrintPdf}
+          >
+            Download Prescription
+          </button>
+        </Grid>
+      </Grid>
+
+      <div className="modal-col">
+        <Modal
+          isOpen={printPdfModal}
+          toggle={tooglePrintPdf}
+          // className={className}
+          // className={classes.root}
+          // style={{ maxWidth: "100%" }}
+        >
+          <ModalHeader toggle={tooglePrintPdf}>Print Prescription</ModalHeader>
+          <ModalBody>
+            <PrescriptionPdf
+              medicine_list_={getMedicinesList()}
+              data={queueData}
+              doctor_info={
+                queueData.doctor_info ? queueData.doctor_info : undefined
+              }
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={tooglePrintPdf} size="sm">
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
+      </div>
     </div>
   );
 };
@@ -111,10 +237,10 @@ export const MedicineListItem = ({ medicine }) => {
     justifyContent: "center",
     alignItems: "center",
     background: "#E0F7FB",
-    padding: "0.2em",
+    padding: "0.2em 0.6em",
   };
   return (
-    <div className="medlist">
+    <div className="medlist" style={{ marginBottom: "0.5em" }}>
       <Grid container>
         <Grid
           item
@@ -123,7 +249,7 @@ export const MedicineListItem = ({ medicine }) => {
             background: "#E0F7FB",
             alignItems: "center",
             display: "flex",
-            padding: "0.2em",
+            padding: "0.2em 0.6em",
           }}
         >
           <Typography>Medicine 1 </Typography>

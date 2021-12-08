@@ -1,38 +1,37 @@
+import React, { Component, Suspense } from "react";
+import { BrowserRouter } from "react-router-dom";
+import { connect } from "react-redux";
+import { routes } from "./routes";
+import { isUserAuthenticated } from "./helpers/authUtils";
+import Loadable from "react-loadable";
+import { setLoadingData, loginUserSuccess } from "./redux/actions";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
-import React, { Component, Suspense } from 'react';
-import { BrowserRouter } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { routes } from './routes';
-import { isUserAuthenticated } from './helpers/authUtils';
-import Loadable from 'react-loadable';
-import { setLoadingData, loginUserSuccess } from './redux/actions';
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer } from 'react-toastify';
-
-// Lazy loading and code splitting - 
+// Lazy loading and code splitting -
 // Derieved idea from https://blog.logrocket.com/lazy-loading-components-in-react-16-6-6cea535c0b52
-const loading = () => <div></div>
+const loading = () => <div></div>;
 
 // All layouts/containers
 const NonAuthLayout = Loadable({
-  loader: () => import('./layout/NonAuthLayout'),
+  loader: () => import("./layout/NonAuthLayout"),
   render(loaded, props) {
     let Component = loaded.default;
     return <Component {...props} />;
   },
-  loading
+  loading,
 });
 const AdminLayout = Loadable({
-  loader: () => import('./layout/AdminLayout'),
+  loader: () => import("./layout/AdminLayout"),
   render(loaded, props) {
     let Component = loaded.default;
     return <Component {...props} />;
   },
-  loading
+  loading,
 });
 /**
  * Exports the component with layout wrapped to it
- * @param {} WrappedComponent 
+ * @param {} WrappedComponent
  */
 const withLayout = (WrappedComponent) => {
   const HOC = class extends Component {
@@ -41,20 +40,24 @@ const withLayout = (WrappedComponent) => {
     }
   };
   return connect()(HOC);
-}
+};
 class App extends Component {
   /**
- * Returns the layout component based on different properties
- * @param {*} props 
- */
+   * Returns the layout component based on different properties
+   * @param {*} props
+   */
   constructor(props) {
     super(props);
     this.props.loginUserSuccess(props.userData);
   }
 
   getLayout = (layout) => {
-    return layout ? NonAuthLayout : (isUserAuthenticated() ? AdminLayout : NonAuthLayout);
-  }
+    return layout
+      ? NonAuthLayout
+      : isUserAuthenticated()
+      ? AdminLayout
+      : NonAuthLayout;
+  };
   render() {
     return (
       // rendering the router with layout
@@ -91,7 +94,9 @@ const mapStateToProps = (state) => {
   return {
     isAuthenticated: state.Auth.isAuthenticated,
     isLoading: state.Auth.isLoading,
-    user: state.Auth.user
-  }
-}
-export default connect(mapStateToProps, { setLoadingData, loginUserSuccess })(App);
+    user: state.Auth.user,
+  };
+};
+export default connect(mapStateToProps, { setLoadingData, loginUserSuccess })(
+  App
+);

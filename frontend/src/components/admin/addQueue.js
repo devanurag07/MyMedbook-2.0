@@ -1,5 +1,12 @@
 import React, { Component } from "react";
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import {
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  FormFeedback,
+} from "reactstrap";
 import { AvForm, AvInput } from "availity-reactstrap-validation";
 import { createQueue } from "../../redux/actions";
 import { connect } from "react-redux";
@@ -17,6 +24,7 @@ import { AutoComplete } from "primereact/autocomplete";
 import { setBData } from "../../redux/actions";
 
 import { toast } from "react-toastify";
+import { Paper, Grid } from "@material-ui/core";
 
 export class addQueue extends Component {
   constructor(props) {
@@ -37,6 +45,7 @@ export class addQueue extends Component {
       customer: "",
       customerLookup: [],
       filteredCustomers: [],
+      emailExist: false,
     };
     this.props.setBData([
       {
@@ -59,28 +68,55 @@ export class addQueue extends Component {
 
   inputChangedHandler = (controlName, event) => {
     if (controlName === "mobile") {
+      this.setState({ mobile: event.target.value });
+
       postCall(BASE_URL + `api/common/check-customer-mobile-exist/`, {
         email: event.target.value,
       })
         .then((r) => {
           if (r.data["exist"]) {
-            this.setState({ customerExist: true, mobileExist: false });
+            this.setState({
+              customerExist: true,
+              mobileExist: false,
+              invalidMobile: false,
+            });
           } else {
-            this.setState({ mobileExist: false, customerExist: false });
+            this.setState({
+              mobileExist: false,
+              customerExist: false,
+              invalidMobile: false,
+            });
           }
         })
         .catch((er) => {
-          this.setState({ mobileExist: true, customerExist: false });
+          if (er.response.status == 500) {
+            this.setState({
+              mobileExist: false,
+              customerExist: false,
+              invalidMobile: true,
+            });
+          } else {
+            {
+              this.state.invalidMobile && (
+                <p className="text-danger">Invalid Value for Mobile No.</p>
+              );
+            }
+            this.setState({
+              mobileExist: true,
+              customerExist: false,
+              invalidMobile: false,
+            });
+          }
         });
     } else {
-      if (this.source) {
-        this.source.cancel("Operation canceled due to new request.");
-      }
-      this.source = axios.CancelToken.source();
+      // if (this.source) {
+      //   this.source.cancel("Operation canceled due to new request.");
+      // }
+      // this.source = axios.CancelToken.source();
       postCall(
         BASE_URL + `api/common/check-customer-email-exist/`,
-        { email: event.target.value },
-        { cancelToken: this.source.token }
+        { email: event.target.value }
+        // { cancelToken: this.source.token }
       )
         .then((r) => {
           if (r.data["exist"]) {
@@ -90,6 +126,7 @@ export class addQueue extends Component {
           }
         })
         .catch((er) => {
+          console.log(er);
           this.setState({ emailExist: true, customerExist: false });
         });
     }
@@ -119,10 +156,13 @@ export class addQueue extends Component {
     } else {
       postCall(BASE_URL + "api/queue/", values)
         .then((r) => {
-          this.setState((state) => ({
-            isModalOpen: !state.isModalOpen,
-          }));
-          this.smartTable.fetchRecords(0, this.recordPerPage);
+          console.log("Queue");
+          console.log(r);
+
+          if (r.status == 200) {
+            console.log("I am here");
+            this.props.history.push("/app/dashboard");
+          }
         })
         .catch((er) => {});
     }
@@ -170,125 +210,217 @@ export class addQueue extends Component {
   render() {
     return (
       <div>
-        <AvForm
-          onValidSubmit={this.submitHandler}
-          model={this.state.formValues}
+        <div
+          className="sub-heading primary-font-color"
+          style={{ fontWeight: "505" }}
         >
-          <div className="header">
-            {this.state.formValues.id ? "Edit Queue" : "Add Queue"}
-          </div>
-          <div className="addQueueBody">
-            <div className="row">
-              <div className="col-lg-12">
-                <p>Customer Details</p>
-                <div className="form-group">
-                  <AutoComplete
-                    placeholder="Search Customer"
-                    value={this.state.customer}
-                    appendTo="self"
-                    inputClassName="autocomplete"
-                    suggestions={this.state.filteredCustomers}
-                    completeMethod={this.searchCustomer}
-                    field="first_name"
-                    onSelect={this.autoCompleteChange.bind(this)}
-                  />
-                </div>
-              </div>{" "}
-              {!this.state.isEditAction && (
-                <React.Fragment>
-                  <div className="separator">OR</div>
-                  {this.state.customerExist && (
-                    <div className="col-lg-12 mt-1">
-                      <p>
-                        Customer Already exist with below mobile/email, Please
-                        use above search
-                      </p>
-                    </div>
-                  )}
-                  <div className="col-lg-6 mt-1">
-                    <div className="form-group">
-                      <AvInput
-                        bsSize="sm"
-                        type="text"
-                        name="first_name"
-                        className="form-control sm bs"
-                        placeholder="Please enter the name"
-                      />
-                    </div>
+          Add Patient To Queue
+        </div>
+        <Paper
+          style={{}}
+          style={{
+            boxShadow:
+              "0px 2px 16px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);",
+
+            padding: "2em",
+            marginTop: "1em",
+          }}
+        >
+          <AvForm
+            onValidSubmit={this.submitHandler}
+            model={this.state.formValues}
+          >
+            <div className="addQueueBody">
+              <div className="row" style={{ justifyContent: "center" }}>
+                <div className="col-lg-6">
+                  <h5
+                    className="primary-font-color"
+                    style={{ textAlign: "center", fontWeight: "506" }}
+                  >
+                    Search for Existing Customer
+                  </h5>
+                  <div className="form-group">
+                    <AutoComplete
+                      placeholder="Search By Phone Number / Name"
+                      value={this.state.customer}
+                      appendTo="self"
+                      inputClassName="autocomplete"
+                      suggestions={this.state.filteredCustomers}
+                      completeMethod={this.searchCustomer}
+                      field="first_name"
+                      onSelect={this.autoCompleteChange.bind(this)}
+                      onChange={(event) =>
+                        this.setState({ customer: event.target.value })
+                      }
+                    />
                   </div>
-                  <div className="col-lg-6 mt-1">
-                    <div className="form-group">
-                      <AvInput
-                        bsSize="sm"
-                        type="text"
-                        onChange={this.inputChangedHandler.bind(this, "email")}
-                        name="email"
-                        className="form-control sm bs"
-                        placeholder="Please enter the email"
-                      />
-                      {this.state.emailExist && (
-                        <p className="text-danger">Email already exist</p>
-                      )}
+                </div>{" "}
+                {!this.state.isEditAction && (
+                  <React.Fragment>
+                    <h3 style={{ textAlign: "center", fontWeight: "606" }}>
+                      {" "}
+                      OR
+                    </h3>
+                    <h5
+                      className="primary-font-color"
+                      style={{ textAlign: "center", fontWeight: "506" }}
+                    >
+                      Add New Customer
+                    </h5>
+
+                    {this.state.customerExist && (
+                      <div className="col-lg-12 mt-1">
+                        <p>
+                          Customer Already exist with below mobile/email, Please
+                          use above search
+                        </p>
+                      </div>
+                    )}
+                    <div className="col-lg-6 mt-1">
+                      <div className="form-group">
+                        <label htmlFor="first_name">Patient Name</label>
+
+                        <AvInput
+                          id="first_name"
+                          bsSize="sm"
+                          type="text"
+                          name="first_name"
+                          className="form-control sm bs"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-lg-6">
-                    <div className="form-group">
-                      <AvInput
-                        bsSize="sm"
-                        type="text"
-                        name="mobile"
-                        onChange={this.inputChangedHandler.bind(this, "mobile")}
-                        validate={{ pattern: { value: /^\d{10}$/ } }}
-                        className="form-control sm bs"
-                        placeholder="Please enter the mobile"
-                      />
-                      {this.state.mobileExist && (
-                        <p className="text-danger">Mobile already exist</p>
-                      )}
+
+                    <div className="col-lg-6">
+                      <div className="form-group">
+                        <label htmlFor="mobile">MOBILE</label>
+
+                        <AvInput
+                          id="mobile"
+                          bsSize="sm"
+                          type="text"
+                          name="mobile"
+                          onChange={this.inputChangedHandler.bind(
+                            this,
+                            "mobile"
+                          )}
+                          validate={{ pattern: { value: /^\d{10}$/ } }}
+                          className="form-control sm bs"
+                        />
+                        <FormFeedback>
+                          {10 -
+                            (this.state.mobile
+                              ? this.state.mobile.length
+                              : 0)}{" "}
+                          chars left
+                        </FormFeedback>
+                        {this.state.mobileExist && (
+                          <p className="text-danger">Mobile already exist</p>
+                        )}
+
+                        {this.state.invalidMobile && (
+                          <p className="text-danger">
+                            Invalid Value for Mobile No.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="col-lg-6">
-                    <div className="form-group">
-                      <AvInput
-                        bsSize="sm"
-                        type="textarea"
-                        name="address_line1"
-                        className="form-control"
-                        placeholder="Please enter the address"
-                      />
+                    <div className="col-lg-6 mt-1">
+                      <div className="form-group">
+                        <label htmlFor="email">EMAIL</label>
+
+                        <AvInput
+                          bsSize="sm"
+                          type="email"
+                          onChange={this.inputChangedHandler.bind(
+                            this,
+                            "email"
+                          )}
+                          name="email"
+                          className="form-control sm bs"
+                        />
+                        {this.state.emailExist == true ? (
+                          <p className="text-danger">
+                            Email exists, Please search with email to find the
+                            Customer
+                          </p>
+                        ) : (
+                          ""
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <hr />
-                </React.Fragment>
-              )}
-              <p>Queue Details</p>
-              <div className="col-lg-12">
-                <div className="form-group">
-                  <AvInput
-                    bsSize="sm"
-                    type="textarea"
-                    name="note"
-                    className="form-control"
-                    placeholder="Please enter note"
-                  />
-                </div>
+                    <div className="col-lg-6 mt-1">
+                      <div className="form-group">
+                        <label htmlFor="dob">DOB</label>
+                        <AvInput
+                          id="dob"
+                          bsSize="sm"
+                          type="text"
+                          onChange={this.inputChangedHandler.bind(this, "dob")}
+                          name="dob"
+                          className="form-control sm bs"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-6">
+                      <label htmlFor="address">Address</label>
+
+                      <div className="form-group">
+                        <AvInput
+                          id="address"
+                          bsSize="sm"
+                          type="textarea"
+                          name="address_line1"
+                          className="form-control"
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-6">
+                      <div className="form-group">
+                        <label htmlFor="note">Note</label>
+                        <AvInput
+                          id="note"
+                          bsSize="sm"
+                          type="textarea"
+                          name="note"
+                          className="form-control"
+                          placeholder="Please enter note"
+                        />
+                      </div>
+                    </div>
+                    <hr />
+                  </React.Fragment>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="addQueueFooter">
-            <Button color="secondary" onClick={this.toggle}>
-              Close
-            </Button>
-            <Button
-              color="primary"
-              type="submit"
-              disabled={this.state.mobileExist || this.state.emailExist}
-            >
-              Save
-            </Button>
-          </div>
-        </AvForm>
+            <Grid className="addQueueFooter" container>
+              <Grid
+                item
+                sm={12}
+                style={{ display: "flex", justifyContent: "flex-end" }}
+              >
+                <Button
+                  color="secondary"
+                  onClick={this.toggle}
+                  style={{ marginRight: "1em" }}
+                  type="button"
+                  onClick={(e) => {
+                    this.props.history.push("/app/dashboard");
+                  }}
+                >
+                  Close
+                </Button>
+                <Button
+                  color="primary"
+                  type="submit"
+                  disabled={this.state.mobileExist || this.state.emailExist}
+                >
+                  Save
+                </Button>
+              </Grid>
+            </Grid>
+          </AvForm>
+        </Paper>
       </div>
     );
   }

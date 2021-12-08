@@ -135,6 +135,35 @@ class UsersSerializer(serializers.HyperlinkedModelSerializer):
         user.save()
 
 
+class UserSerializerReadOnly(serializers.ModelSerializer):
+    mobile = serializers.CharField(
+        source='profile.mobile', max_length=255, allow_null=True, allow_blank=True)
+
+    role_id = serializers.CharField(
+        source='profile.role_id', max_length=100, allow_null=True, allow_blank=True)
+    city = serializers.CharField(
+        source='profile.city', allow_null=True, allow_blank=True, required=False)
+    state = serializers.CharField(
+        source='profile.state', allow_null=True, allow_blank=True, required=False)
+    country = serializers.CharField(
+        source='profile.country', allow_null=True, allow_blank=True, required=False)
+    pin_code = serializers.CharField(
+        source='profile.country', allow_null=True, allow_blank=True, required=False)
+
+    clinic_name = serializers.CharField(source='profile.clinic_name', allow_null=True, allow_blank=True,
+
+                                        required=False)
+
+    class Meta:
+        model = QMUser
+        fields = (
+            'id', 'username', 'first_name', 'last_name', 'mobile',
+            'email', 'role_id', 'is_superuser', 'mobile', 'city',
+            'clinic_name',
+            'state', 'country', 'pin_code'
+        )
+
+
 class GroupSerializer(serializers.HyperlinkedModelSerializer):
     alias = serializers.CharField(source='details.alias', max_length=50)
     created_by = serializers.CharField(
@@ -219,14 +248,13 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
 class AccessRequestSerializer(serializers.ModelSerializer):
 
     doctor_name = serializers.SerializerMethodField()
-    last_updated = serializers.SerializerMethodField()
-
-    def get_last_updated(self, obj):
-        # obj.created_at.
-        return obj.created_at.strftime("%Y-%m-%d")
+    doctor_id = serializers.SerializerMethodField()
 
     def get_doctor_name(self, obj):
         return obj.requested_by.first_name
+
+    def get_doctor_id(self, obj):
+        return obj.requested_by.id
 
     class Meta:
         model = AccessRequest

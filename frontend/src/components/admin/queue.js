@@ -57,8 +57,8 @@ class Queue extends Component {
           },
         },
         {
-          dataField: "note",
-          label: "Note",
+          dataField: "purpose_of_visit",
+          label: "Purpose",
           type: "text",
           styles: {
             width: "33%",
@@ -159,13 +159,33 @@ class Queue extends Component {
       })
         .then((r) => {
           if (r.data["exist"]) {
-            this.setState({ customerExist: true, mobileExist: false });
+            this.setState({
+              customerExist: true,
+              mobileExist: false,
+              invalidMobile: false,
+            });
           } else {
-            this.setState({ mobileExist: false, customerExist: false });
+            this.setState({
+              mobileExist: false,
+              customerExist: false,
+              invalidMobile: false,
+            });
           }
         })
         .catch((er) => {
-          this.setState({ mobileExist: true, customerExist: false });
+          if (er.response.status == 500) {
+            this.setState({
+              invalidMobile: true,
+              mobileExist: false,
+              customerExist: false,
+            });
+          } else {
+            this.setState({
+              mobileExist: true,
+              customerExist: false,
+              invalidMobile: false,
+            });
+          }
         });
     } else {
       if (this.source) {
@@ -189,6 +209,7 @@ class Queue extends Component {
         });
     }
   };
+
   toggle(event) {
     event.preventDefault();
     this.setState((state) => ({
@@ -325,10 +346,13 @@ class Queue extends Component {
       <React.Fragment>
         <div className="row mt-2 p-3">
           <div className="col">
-            <h4 className="">
-              Queue
+            <h4 className="primary-font-color">
+              Open Queue
               <button
-                onClick={this.toggle}
+                // onClick={this.toggle}
+                onClick={() => {
+                  this.props.history.push("/app/addQueue");
+                }}
                 className="btn btn-primary btn-sm float-end"
                 type="button"
               >
@@ -345,6 +369,7 @@ class Queue extends Component {
               actionHandler={this.actionHandler}
               recordPerPage={this.recordPerPage}
               cols={this.state.columns}
+              rowPreCls="queue"
             />
           </div>
         </div>
@@ -429,6 +454,12 @@ class Queue extends Component {
                         />
                         {this.state.mobileExist && (
                           <p className="text-danger">Mobile already exist</p>
+                        )}
+
+                        {this.state.invalidMobile && (
+                          <p className="text-danger">
+                            Invalid Value for Mobile No.
+                          </p>
                         )}
                       </div>
                     </div>

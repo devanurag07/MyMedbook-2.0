@@ -89,11 +89,9 @@ class PasswordResetTokens(models.Model):
 class AccessRequest(models.Model):
     requested_by = models.ForeignKey(
         QMUser, related_name="requests", on_delete=models.CASCADE)
-    status = models.CharField(max_length=250)
+    status = models.CharField(max_length=250, default="pending")
     requested_for = models.ForeignKey(
         QMUser, related_name="my_requests", on_delete=models.CASCADE)
-
-    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Review(models.Model):

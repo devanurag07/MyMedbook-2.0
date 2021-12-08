@@ -51,6 +51,14 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data['otp'] = random.randrange(1, 10 ** 6)
+        # pdb.set_trace()
+
+        if(request.data.get("create", False)):
+            mobile_exists = UserProfile.objects.filter(
+                mobile=request.data['mobile'])
+            if(mobile_exists.exists()):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         request.data['phone_number'] = request.data['mobile']
         message = 'Your Verification code is %s. valid 5 minutes only' % request.data['otp']
         OtpRequests.objects.filter(
@@ -89,7 +97,6 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
             data = dict()
             data['message'] = "Invalid phone number"
             return Response(data, status=400)
-
 
     @action(methods=['post'], detail=False, url_path='verify')
     def verify(self, request, *args, **kwargs):
@@ -226,6 +233,7 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
             qs = qs.exclude(user_id=request.data['user_id'])
         profile = qs.first()
         return_data = dict()
+        # pdb.set_trace()
         if len(qs) > 0:
             return_data['exist'] = True
             return Response(return_data, status=400)
@@ -294,7 +302,10 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
             if user is None:
                 profile = UserProfile.objects.filter(
                     mobile=form_data['username']).first()
-                user = profile.user
+                if(profile):
+                    user = profile.user
+                else:
+                    return Response(False, status=400)
             if user is None:
                 return Response(False, status=400)
             from django.contrib.auth import authenticate

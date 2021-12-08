@@ -36,9 +36,11 @@ class Prescription(models.Model):
     prescription = models.ManyToManyField(PrescriptionData, related_name='prescription_queue_data',
                                           )
     note = models.TextField()
+    symptoms = models.TextField()
+    purpose_of_visit = models.TextField()
     deleted = models.BooleanField(default=False)
-    queue = models.ForeignKey(Queue, related_name='prescription_queue',
-                              on_delete=models.CASCADE)
+    queue = models.OneToOneField(Queue, related_name='prescription_queue',
+                                 on_delete=models.CASCADE)
     created_by = models.ForeignKey(QMUser, related_name='prescription_created_by',
                                    on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)

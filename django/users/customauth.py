@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 import pdb
 
+
 class EmailBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         UserModel = get_user_model()
@@ -10,8 +11,6 @@ class EmailBackend(ModelBackend):
         except UserModel.DoesNotExist:
             return None
         else:
-            pdb.set_trace()
             if user.check_password(password):
-                pdb.set_trace()
                 return user
         return None

@@ -11,6 +11,8 @@ import { BASE_URL } from "../../helpers/constants";
 import { toast } from "react-toastify";
 import { loginUserSuccess } from "../../redux/actions";
 
+import { Input } from "@mui/material";
+
 /*
  customer name, address, contact no, email, a field to enter prescription, extra note if necessary
 */
@@ -22,8 +24,12 @@ class Profile extends Component {
     this.onFileChange = this.onFileChange.bind(this);
     this.state = {
       formValues: this.props.user,
+      errors: {},
+      invalidFields: {},
+      errorValues: {},
+      fileDataList: {},
     };
-    console.log(this.props.user);
+
     this.props.setBData([
       {
         label: "App",
@@ -41,12 +47,10 @@ class Profile extends Component {
   onFileChange = (event) => {
     this.setState({
       fileDataList: {
-        [event.target.id]: event.target.files[0],
+        [event.target.id]: event.target.files ? event.target.files[0] : "null",
         ...this.state.fileDataList,
       },
     });
-
-    console.log(this.state);
   };
   notify = () => toast("Profile updated !");
   UNSAFE_componentWillMount() {
@@ -56,8 +60,22 @@ class Profile extends Component {
             this.getQueueDetails(this.props.match.params.id)
         } */
   }
-  submitHandler = (event, values) => {
+  submitHandler = (event, errors, values) => {
     event.preventDefault();
+    if (this.state.emailExist) {
+      errors.push("email");
+    }
+    if (this.state.mobileExists) {
+      errors.push("mobile");
+    }
+    if (this.state.invalidMobile) {
+      errors.push("mobile");
+    }
+
+    if (errors.length > 0) {
+      return;
+    }
+
     let formData = new FormData();
     Object.keys(values).forEach((key) => {
       formData.append(key, values[key]);
@@ -69,8 +87,6 @@ class Profile extends Component {
           this.state.fileDataList[filename],
           this.state.fileDataList[filename].name
         );
-
-        console.log(formData);
       }
     }
     postCall(BASE_URL + `api/users/update-profile/`, formData).then((r) => {
@@ -78,13 +94,59 @@ class Profile extends Component {
       this.notify();
     });
   };
+
+  inputChangedHandler = (controlName, event) => {
+    const userEmail = this.props.user ? this.props.user.email : "";
+    const userMobile = this.props.user ? this.props.user.mobile : "";
+
+    if (controlName === "mobile") {
+      if (userMobile == event.target.value) {
+        this.setState({ mobileExist: false });
+        return;
+      }
+
+      postCall(BASE_URL + `api/common/check-mobile-exist/`, {
+        email: event.target.value,
+      })
+        .then((r) => {
+          this.setState({ mobileExist: false });
+          this.setState({ invalidMobile: false });
+        })
+        .catch((err) => {
+          if (err.response.status == 400) {
+            this.setState({ mobileExist: true });
+            this.setState({ invalidMobile: false });
+          }
+          if (err.response.status == 500) {
+            this.setState({ invalidMobile: true });
+          }
+        });
+    } else {
+      if (userEmail == event.target.value) {
+        this.setState({ emailExist: false });
+        return;
+      }
+
+      postCall(BASE_URL + `api/common/check-email-exist/`, {
+        email: event.target.value,
+      })
+        .then((r) => {
+          this.setState({ emailExist: false });
+        })
+        .catch((er) => {
+          this.setState({ emailExist: true });
+        });
+    }
+  };
+
   render() {
+    const email = this.props.user ? this.props.user.email : "";
     return (
       <React.Fragment>
         <div className="row mt-2 p-3">
           <div className="col">
             <h4 className="">Profile</h4>
-            <AvForm onValidSubmit={this.submitHandler}>
+            <AvForm onSubmit={this.submitHandler}>
               <div className="row">
                 <div className="col-lg-6">
                   <div className="form-group">
@@ -104,15 +166,20 @@ class Profile extends Component {
                   <div className="form-group">
                     <label className="required">Email</label>
                     <AvInput
-                      readOnly
+                      readOnly={email == "" ? false : true}
                       bsSize="sm"
                       type="text"
                       name="email"
                       className="form-control"
-                      value={this.props.user ? this.props.user.email : ""}
+                      value={email}
                       required
                       placeholder="Please enter email"
+                      onChange={this.inputChangedHandler.bind(this, "email")}
                     />
+
+                    {this.state.emailExist && (
+                      <p className="text-danger">Email already exist</p>
+                    )}
                   </div>
                 </div>
                 <div className="col-lg-6">
@@ -126,7 +193,18 @@ class Profile extends Component {
                       className="form-control"
                       required
                       placeholder="Please enter mobile"
+                      onChange={this.inputChangedHandler.bind(this, "mobile")}
                     />
+
+                    {this.state.mobileExist && (
+                      <p className="text-danger">Mobile already exist</p>
+                    )}
+
+                    {this.state.invalidMobile && (
+                      <p className="text-danger">
+                        Invalid Value for Mobile No.
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -188,53 +266,127 @@ class Profile extends Component {
                       </div>
                     </div>
                     <div className="col-lg-6">
-                      <div className="form-group">
-                        <input
-                          type="file"
-                          id="agreement_file"
-                          onChange={this.onFileChange}
-                          style={{ fontSize: "13px" }}
-                        />
-                        <a href={this.props.user.agreement_file}>
-                          Agreement File
-                        </a>
-                      </div>
-                      <div className="form-group">
-                        <input
+                      <div className="col-sm-8">
+                        <div className="form-group">
+                          {/* <input type="file" id="agreement_file" /> */}
+                          {/* <input
                           type="file"
                           id="degree_certificate"
                           onChange={this.onFileChange}
                           style={{ fontSize: "13px" }}
-                        />
+                          required
+                        /> */}
 
-                        <a href={this.props.user.degree_certificate}>
-                          Degree Certificate
-                        </a>
+                          <div className="row">
+                            <div className="col-sm-6">
+                              <AvInput
+                                type="file"
+                                bsSize="sm"
+                                name="agreement_file"
+                                id="agreement_file"
+                                onChange={this.onFileChange}
+                                required={
+                                  this.props.user.agreement_file ? false : true
+                                }
+                                className="form-control"
+                                style={{ height: "auto" }}
+                              />
+                            </div>
+                            <div className="col-sm-6">
+                              <a href={this.props.user.agreement_file}>
+                                Agreement File
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <input
-                          type="file"
-                          id="doctor_registration"
-                          style={{ fontSize: "13px" }}
-                          onChange={this.onFileChange}
-                        />
-                        <a href={this.props.user.doctor_registration}>
-                          Doctor Registeration
-                        </a>
+                      <div className="col-sm-8">
+                        <div className="form-group">
+                          <div className="row">
+                            <div className="col-sm-6">
+                              <AvInput
+                                type="file"
+                                bsSize="sm"
+                                name="degree_certificate"
+                                id="degree_certificate"
+                                onChange={this.onFileChange}
+                                style={{ fontSize: "13px" }}
+                                required={
+                                  this.props.user.degree_certificate
+                                    ? false
+                                    : true
+                                }
+                                className="form-control"
+                                placeholder="Degree"
+                                style={{ height: "auto" }}
+                              />
+                            </div>
+                            <div className="col-sm-6">
+                              <a href={this.props.user.degree_certificate}>
+                                Degree Certificate
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="form-group">
-                        <input
-                          type="file"
-                          style={{ fontSize: "13px" }}
-                          id="clinic_address_proof"
-                          onChange={this.onFileChange}
-                        />
-
-                        <a href={this.props.user.clinic_address_proof}>
-                          Clinic Address Proof
-                        </a>
+                      <div className="col-sm-8">
+                        <div className="form-group">
+                          <div className="row">
+                            <div className="col-sm-6">
+                              <AvInput
+                                type="file"
+                                bsSize="sm"
+                                name="doctor_registration"
+                                id="doctor_registration"
+                                onChange={this.onFileChange}
+                                style={{ fontSize: "13px" }}
+                                style={{ height: "auto" }}
+                                required={
+                                  this.props.user.doctor_registration
+                                    ? false
+                                    : true
+                                }
+                                className="form-control"
+                              />
+                            </div>
+                            <div className="col-sm-6">
+                              <a href={this.props.user.doctor_registration}>
+                                Doctor Registration
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-sm-8">
+                        <div className="form-group">
+                          <div className="row">
+                            <div className="col-sm-6">
+                              <AvInput
+                                type="file"
+                                bsSize="sm"
+                                name="clinic_address_proof"
+                                id="clinic_address_proof"
+                                onChange={this.onFileChange}
+                                style={{ fontSize: "13px" }}
+                                style={{ height: "auto" }}
+                                required={
+                                  this.props.user.clinic_address_proof
+                                    ? false
+                                    : true
+                                }
+                                className="form-control"
+                              />
+                            </div>
+                            <div className="col-sm-6">
+                              <a href={this.props.user.clinic_address_proof}>
+                                Clinic Address Proof
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
+
                     <div className="col-lg-6">
                       <div className="form-group">
                         <label>Clinic name</label>

@@ -48,13 +48,21 @@ const Doctors = (props) => {
         width: "10%",
       },
     },
+    {
+      dataField: "mobile",
+      label: "Mobile",
+      type: "text",
+      styles: {
+        width: "10%",
+      },
+    },
 
     {
       dataField: "subCategory",
       styles: {
         width: "9%",
       },
-      label: "Actions",
+      label: "View All Details",
       actions: [
         {
           label: "View",
@@ -69,8 +77,7 @@ const Doctors = (props) => {
   const smartTable = useRef(null);
 
   return (
-    <div>
-      {" "}
+    <div style={{ marginTop: "4em" }}>
       <SmartTable
         ref={smartTable}
         fetchUrl="api/users/get-doctors/"

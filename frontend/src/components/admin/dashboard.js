@@ -3,6 +3,7 @@ import "../../assets/scss/dashboard.scss";
 import { setBData } from "../../redux/actions";
 import { connect } from "react-redux";
 import SmartTable from "../../ui/smart-table";
+
 import {
   getCall,
   postCall,
@@ -10,7 +11,14 @@ import {
   putCall,
 } from "../../helpers/axiosUtils";
 import { BASE_URL } from "../../helpers/constants";
-import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from "reactstrap";
+import {
+  Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  FormFeedback,
+} from "reactstrap";
 import { AvForm, AvInput } from "availity-reactstrap-validation";
 import { toast } from "react-toastify";
 import { NavLink } from "react-router-dom";
@@ -18,6 +26,8 @@ import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { AutoComplete } from "primereact/autocomplete";
 import axios from "axios";
+
+import Home from "./UserPanel/Home";
 
 class Dashboard extends Component {
   recordPerPage = 15;
@@ -156,7 +166,7 @@ class Dashboard extends Component {
       ],
       chartOptions: {
         title: {
-          text: "This Week",
+          text: "",
         },
         credits: {
           enabled: false,
@@ -199,6 +209,9 @@ class Dashboard extends Component {
         ],
       },
       hoverData: null,
+      reportData: {
+        total_payment: undefined,
+      },
     };
   }
   deleteToggle(event) {
@@ -224,6 +237,7 @@ class Dashboard extends Component {
 
   getReportDetails() {
     getCall(BASE_URL + "api/queue/reports/").then((r) => {
+      console.log(r.data);
       this.setState({
         reportData: r.data,
       });
@@ -236,9 +250,7 @@ class Dashboard extends Component {
       this.setState({
         highcharts: responseData,
         chartOptions: {
-          title: {
-            text: "This Week",
-          },
+          title: {},
           credits: {
             enabled: false,
           },
@@ -353,7 +365,13 @@ class Dashboard extends Component {
           this.getChartDetails();
           this.smartTable.fetchRecords(0, this.recordPerPage);
         })
-        .catch((er) => {});
+        .catch((err) => {
+          if (err.response.status == 401) {
+            if (err.response.data.mobileExists) {
+              this.setState({ mobileExist: true });
+            }
+          }
+        });
     }
   };
   autoCompleteChange(e) {
@@ -361,40 +379,84 @@ class Dashboard extends Component {
       customer: e.value,
     });
   }
+  // inputChangedHandler = (controlName, event) => {
+  //   if (controlName === "mobile") {
+  //     postCall(BASE_URL + `api/common/check-customer-mobile-exist/`, {
+  //       email: event.target.value,
+  //     })
+  //       .then((r) => {
+  //         if (r.data["exist"]) {
+  //           this.setState({ customerExist: true, mobileExist: false });
+  //         } else {
+  //           this.setState({ mobileExist: false, customerExist: false });
+  //         }
+  //       })
+  //       .catch((er) => {
+  //         this.setState({ mobileExist: true, customerExist: false });
+  //       });
+  //   } else {
+  //     if (this.source) {
+  //       this.source.cancel("Operation canceled due to new request.");
+  //     }
+  //     this.source = axios.CancelToken.source();
+  //     postCall(
+  //       BASE_URL + `api/common/check-customer-email-exist/`,
+  //       { email: event.target.value },
+  //       { cancelToken: this.source.token }
+  //     )
+  //       .then((r) => {
+  //         if (r.data["exist"]) {
+  //           this.setState({ customerExist: true, emailExist: false });
+  //         } else {
+  //           this.setState({ emailExist: false, customerExist: false });
+  //         }
+  //       })
+  //       .catch((er) => {
+  //         this.setState({ emailExist: true, customerExist: false });
+  //       });
+  //   }
+  // };
   inputChangedHandler = (controlName, event) => {
+    const userEmail = this.props.user ? this.props.user.email : "";
+    const userMobile = this.props.user ? this.props.user.mobile : "";
+
     if (controlName === "mobile") {
-      postCall(BASE_URL + `api/common/check-customer-mobile-exist/`, {
+      this.setState({ mobile: event.target.value });
+      if (userMobile == event.target.value) {
+        this.setState({ mobileExist: false });
+        return;
+      }
+
+      postCall(BASE_URL + `api/common/check-mobile-exist/`, {
         email: event.target.value,
       })
         .then((r) => {
-          if (r.data["exist"]) {
-            this.setState({ customerExist: true, mobileExist: false });
-          } else {
-            this.setState({ mobileExist: false, customerExist: false });
-          }
+          this.setState({ mobileExist: false });
+          this.setState({ invalidMobile: false });
         })
-        .catch((er) => {
-          this.setState({ mobileExist: true, customerExist: false });
+        .catch((err) => {
+          if (err.response.status == 400) {
+            this.setState({ mobileExist: true });
+            this.setState({ invalidMobile: false });
+          }
+          if (err.response.status == 500) {
+            this.setState({ invalidMobile: true });
+          }
         });
     } else {
-      if (this.source) {
-        this.source.cancel("Operation canceled due to new request.");
+      if (userEmail == event.target.value) {
+        this.setState({ emailExist: false });
+        return;
       }
-      this.source = axios.CancelToken.source();
-      postCall(
-        BASE_URL + `api/common/check-customer-email-exist/`,
-        { email: event.target.value },
-        { cancelToken: this.source.token }
-      )
+
+      postCall(BASE_URL + `api/common/check-email-exist/`, {
+        email: event.target.value,
+      })
         .then((r) => {
-          if (r.data["exist"]) {
-            this.setState({ customerExist: true, emailExist: false });
-          } else {
-            this.setState({ emailExist: false, customerExist: false });
-          }
+          this.setState({ emailExist: false });
         })
         .catch((er) => {
-          this.setState({ emailExist: true, customerExist: false });
+          this.setState({ emailExist: true });
         });
     }
   };
@@ -449,23 +511,25 @@ class Dashboard extends Component {
                 <div className="widget-rounded-circle card">
                   <div className="card-body">
                     <div className="row">
-                      <div className="col-6">
+                      <div className="col-4">
                         <div className="avatar-lg rounded-circle bg-primary">
                           <i className="fa fa-inr font-22 avatar-title text-white"></i>
                         </div>
                       </div>
-                      <div className="col-6">
-                        <div className="text-end">
-                          <h3 className="text-dark mt-1">
-                            <span data-plugin="counterup">
-                              {this.state.reportData
-                                ? this.state.reportData.total_payment
-                                : 0}
-                            </span>
+                      <div className="col-8">
+                        <div className="text-center">
+                          <h6 className="text-muted mb-1 text-truncate">
+                            Total Payment
+                          </h6>
+                          <h3
+                            className="text-dark mt-1"
+                            data-plugin="counterup"
+                            style={{ fontWeight: "505" }}
+                          >
+                            {this.state.reportData.total_payment
+                              ? this.state.reportData.total_payment
+                              : 0}
                           </h3>
-                          <p className="text-muted mb-1 text-truncate">
-                            Payment Received
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -478,7 +542,7 @@ class Dashboard extends Component {
               <div className="widget-rounded-circle card">
                 <div className="card-body">
                   <div className="row">
-                    <div className="col-6">
+                    <div className="col-4">
                       <div className="avatar-lg rounded-circle cbg-light">
                         <img
                           className="icon-circle avatar-title"
@@ -488,16 +552,20 @@ class Dashboard extends Component {
                         ></img>
                       </div>
                     </div>
-                    <div className="col-6">
-                      <div className="text-end">
-                        <h3 className="text-dark mt-1">
-                          <span data-plugin="counterup">
-                            {this.state.reportData
-                              ? this.state.reportData.total
-                              : 0}
-                          </span>
+                    <div className="col-8">
+                      <div className="text-center">
+                        <h6 className="text-muted mb-1 text-truncate">
+                          Total Doctors
+                        </h6>
+                        <h3
+                          className="text-dark mt-1"
+                          data-plugin="counterup"
+                          style={{ fontWeight: "505" }}
+                        >
+                          {this.state.reportData
+                            ? this.state.reportData.total_doctors
+                            : 0}
                         </h3>
-                        <p className="text-muted mb-1 text-truncate">Total</p>
                       </div>
                     </div>
                   </div>
@@ -509,7 +577,7 @@ class Dashboard extends Component {
               <div className="widget-rounded-circle card">
                 <div className="card-body">
                   <div className="row">
-                    <div className="col-6">
+                    <div className="col-4">
                       <div className="avatar-lg rounded-circle cbg-warning">
                         <img
                           className="icon-circle avatar-title"
@@ -519,16 +587,20 @@ class Dashboard extends Component {
                         ></img>
                       </div>
                     </div>
-                    <div className="col-6">
-                      <div className="text-end">
-                        <h3 className="text-dark mt-1">
-                          <span data-plugin="counterup">
-                            {this.state.reportData
-                              ? this.state.reportData.pending
-                              : 0}
-                          </span>
+                    <div className="col-8">
+                      <div className="text-center">
+                        <h6 className="text-muted mb-1 text-truncate">
+                          Total Customers
+                        </h6>
+                        <h3
+                          className="text-dark mt-1"
+                          data-plugin="counterup"
+                          style={{ fontWeight: "505" }}
+                        >
+                          {this.state.reportData
+                            ? this.state.reportData.total_customers
+                            : 0}
                         </h3>
-                        <p className="text-muted mb-1 text-truncate">Pending</p>
                       </div>
                     </div>
                   </div>
@@ -537,6 +609,12 @@ class Dashboard extends Component {
             </div>
 
             <div className="row">
+              <h5
+                className="primary-font-color"
+                style={{ fontWeight: "606", marginTop: "2em" }}
+              >
+                This Week Customer Visit
+              </h5>
               <div className="col-9">
                 <HighchartsReact
                   highcharts={Highcharts}
@@ -705,22 +783,38 @@ class Dashboard extends Component {
                     {this.props.user.agreement_file &&
                       !this.props.user.document_rejected && (
                         <React.Fragment>
-                          <p>Document verification Pending</p>
+                          <div className="verification-pending">
+                            <h2 className="primary-font-color heading-2">
+                              SUBMITED FOR VERIFICATION
+                            </h2>
+                            <div className="status">
+                              <span>STATUS : PENDING</span>
+                            </div>
+                            <h4 className="primary-font-color para-info">
+                              Your application is <b>pending</b> with us We will
+                              let you know if <br />
+                              <div style={{ marginTop: "1em" }}></div>
+                              we need any documents We are commited to <br />
+                              processing your application as soon as possible
+                            </h4>
+                          </div>
                         </React.Fragment>
                       )}
                     {this.props.user.agreement_file &&
                       this.props.user.document_rejected && (
                         <React.Fragment>
-                          <p>
-                            Document verification Failed, Please update new
-                            document to complete verification
-                          </p>
-                          <NavLink
-                            to="/app/profile"
-                            className="btn btn-primary ms-8 "
-                          >
-                            Try Again
-                          </NavLink>
+                          <div className="document-rejected">
+                            <div className="status">
+                              <h5>Status : REJECTED</h5>
+                            </div>
+                            <h4
+                              className="primary-font-color"
+                              style={{ marginTop: "2em" }}
+                            >
+                              Comment added in the admin panel by <br />
+                              the verifier should appear here
+                            </h4>
+                          </div>
                         </React.Fragment>
                       )}
                   </React.Fragment>
@@ -852,21 +946,25 @@ class Dashboard extends Component {
           </React.Fragment>
         )}
         {this.props.user && this.props.user.role_name == "Customers" && (
-          <div className="row mt-3">
-            <div className="col-12">
-              <h4 className="header-title mb-4">Prescription </h4>
-              <SmartTable
-                ref={(instance) => {
-                  this.prescriptionSmartTable = instance;
-                }}
-                fetchUrl="api/prescription/"
-                defaultParam={this.paymentParam}
-                actionHandler={this.actionHandler}
-                recordPerPage={this.recordPerPage}
-                cols={this.state.preColumns}
-              />
-            </div>
-          </div>
+          // <div className="row mt-3">
+          //   <div className="col-12">
+          //     <h4 className="header-title mb-4 primary-font-color">
+          //       Prescription{" "}
+          //     </h4>
+          //     <SmartTable
+          //       ref={(instance) => {
+          //         this.prescriptionSmartTable = instance;
+          //       }}
+          //       fetchUrl="api/prescription/"
+          //       defaultParam={this.paymentParam}
+          //       actionHandler={this.actionHandler}
+          //       recordPerPage={this.recordPerPage}
+          //       cols={this.state.preColumns}
+          //       rowPreCls="queue"
+          //     />
+          //   </div>
+          // </div>
+          <Home />
         )}
         <Modal isOpen={this.state.isModalOpen} size="lg" toggle={this.toggle}>
           <AvForm
@@ -967,6 +1065,9 @@ class Dashboard extends Component {
                       completeMethod={this.searchCustomer}
                       field="first_name"
                       onSelect={this.autoCompleteChange.bind(this)}
+                      onChange={(event) =>
+                        this.setState({ customer: event.target.value })
+                      }
                     />
                   </div>
                 </div>{" "}
@@ -1006,7 +1107,11 @@ class Dashboard extends Component {
                           placeholder="Please enter the email"
                         />
                         {this.state.emailExist && (
-                          <p className="text-danger">Email already exist</p>
+                          <p className="text-danger">
+                            {" "}
+                            Email exists, Please search with email to find the
+                            Customer
+                          </p>
                         )}
                       </div>
                     </div>
@@ -1024,8 +1129,22 @@ class Dashboard extends Component {
                           className="form-control sm bs"
                           placeholder="Please enter the mobile"
                         />
+
+                        <FormFeedback>
+                          {10 -
+                            (this.state.mobile
+                              ? this.state.mobile.length
+                              : 0)}{" "}
+                          chars left
+                        </FormFeedback>
                         {this.state.mobileExist && (
                           <p className="text-danger">Mobile already exist</p>
+                        )}
+
+                        {this.state.invalidMobile && (
+                          <p className="text-danger">
+                            Invalid Value for Mobile No.
+                          </p>
                         )}
                       </div>
                     </div>

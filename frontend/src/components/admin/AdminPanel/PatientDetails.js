@@ -26,10 +26,17 @@ const PatientDetails = (props) => {
 
   const getPatientData = () => {
     const url = `${BASE_URL}api/admin_m/${patientId}/get-customer/`;
-    axios.get(url).then((resp) => {
-      setPatientData(resp.data.data);
-      console.log(resp.data);
-    });
+    axios
+      .get(url)
+      .then((resp) => {
+        setPatientData(resp.data.data);
+        console.log(resp.data);
+      })
+      .catch((err) => {
+        if (err.response.status == 401) {
+          props.history.push(`/app/askaccess/${patientId}`);
+        }
+      });
   };
 
   useEffect(() => {
@@ -67,7 +74,7 @@ const PatientDetails = (props) => {
         </Grid>
       </Grid>
 
-      <Grid container>
+      <Grid container style={{ marginTop: "2em" }}>
         <h6 style={{ color: "#0A58CA" }}>Previous Prescriptions</h6>
         <Grid item sm={12} style={{ marginTop: "1em" }}>
           {patientData.prev_prescs.map((prescription) => {
@@ -81,12 +88,27 @@ const PatientDetails = (props) => {
 
 export default PatientDetails;
 
+const useStyels2 = makeStyles((theme) => ({
+  root: {
+    "& .MuiGrid-item": {
+      display: "flex",
+      alignItems: "center",
+    },
+  },
+  box: {
+    boxShadow: "1px 0px 6px grey",
+    padding: "0.8em 0.8em",
+    borderRadius: "0.4em",
+  },
+}));
+
 export const PrescriptionListItem = ({ prescription }) => {
   const date = prescription.created_at.split("T")[0];
 
+  const classes = useStyels2();
   return (
-    <div>
-      <Grid container style={{ marginTop: "1em",,ś, }}>
+    <div className={classes.root}>
+      <Grid container style={{ marginTop: "1em" }} className={classes.box}>
         <Grid item sm={3} style={{ justifyContent: "flex-start" }}>
           Date : - {date}
         </Grid>

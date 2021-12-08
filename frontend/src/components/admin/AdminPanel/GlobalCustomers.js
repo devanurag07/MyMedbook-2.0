@@ -69,7 +69,7 @@ const GlobalCustomers = (props) => {
   const smartTable = useRef(null);
 
   return (
-    <div>
+    <div style={{ marginTop: "4em" }}>
       {" "}
       <SmartTable
         ref={smartTable}

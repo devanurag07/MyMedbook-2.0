@@ -7,6 +7,9 @@ import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 import { NavLink } from "react-router-dom";
+import MenuOpenOutlinedIcon from "@mui/icons-material/MenuOpenOutlined";
+import { IconButton } from "@mui/material";
+
 // code splitting and lazy loading
 // https://blog.logrocket.com/lazy-loading-components-in-react-16-6-6cea535c0b52
 const Topbar = React.lazy(() => import("./Topbar"));
@@ -43,8 +46,10 @@ class AdminLayout extends Component {
 
     this.toggleRightSidebar = this.toggleRightSidebar.bind(this);
     this.toggleMenu = this.toggleMenu.bind(this);
+    this.toogleSidebar = this.toogleSidebar.bind(this);
     this.state = {
       isCondensed: false,
+      showSidebar: false,
     };
   }
 
@@ -61,6 +66,11 @@ class AdminLayout extends Component {
     this.setState({ isCondensed: !this.state.isCondensed });
   };
 
+  toogleSidebar = (e) => {
+    e.preventDefault();
+    this.setState({ showSidebar: !this.state.showSidebar });
+  };
+
   /**
    * Toggle right side bar
    */
@@ -75,7 +85,12 @@ class AdminLayout extends Component {
     return (
       <div className="app">
         <header className="app-header">
-          <div id="app-sidepanel" className="app-sidepanel">
+          <div
+            id="app-sidepanel"
+            className={`app-sidepanel ${
+              this.state.showSidebar ? "show-panel" : "hide-panel"
+            }`}
+          >
             <div id="sidepanel-drop" className="sidepanel-drop"></div>
             <div className="sidepanel-inner d-flex flex-column">
               <a
@@ -209,9 +224,10 @@ class AdminLayout extends Component {
                           <span className="ms-2">My Records</span>
                         </NavLink>
                       </li>
+
                       <li className="nav-item ms-4">
                         <NavLink
-                          to="/app/accesss"
+                          to="/app/access"
                           className="nav-link ps-1"
                           activeClassName="active"
                           aria-expanded="true"
@@ -322,12 +338,19 @@ class AdminLayout extends Component {
             </div>
           </div>
         </header>
-        <div className="app-wrapper">
+        <div
+          className={`app-wrapper ${
+            this.state.showSidebar ? "hide-app" : "show-app"
+          }`}
+        >
           {/* <Suspense fallback={loading()}>
                         <Topbar rightSidebarToggle={this.toggleRightSidebar} menuToggle={this.toggleMenu} />
                         <Sidebar isCondensed={this.state.isCondensed} {...this.props} />
                     </Suspense> */}
           <div className="content-page">
+            <IconButton onClick={this.toogleSidebar}>
+              <MenuOpenOutlinedIcon color="primary" />
+            </IconButton>
             <div className="content mt-4 me-4">
               <Container fluid className="ms-2 bd me-2">
                 <div className="app-header-inner">
@@ -340,7 +363,8 @@ class AdminLayout extends Component {
                                             </div> */}
                       <div className="col mt-mb-auto">
                         <div className="app-utility-item">
-                          Welcome {this.props.user.full_name}
+                          Welcome{" "}
+                          {this.props.user ? this.props.user.full_name : ""}
                         </div>
                       </div>
                       <div className="app-utilities col-auto">

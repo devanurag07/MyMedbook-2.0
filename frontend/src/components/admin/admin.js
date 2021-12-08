@@ -25,6 +25,7 @@ import MyRecords from "./UserPanel/MyRecords";
 import GlobalCustomers from "./AdminPanel/GlobalCustomers";
 import Access from "./UserPanel/Access";
 import Review from "./UserPanel/Review";
+import Home from "./UserPanel/Home";
 import AskAccessPermission from "./AdminPanel/AskAccessPermission";
 import VerifyAccessOtp from "./AdminPanel/VerifyAccessOtp";
 
@@ -99,6 +100,7 @@ class Admin extends Component {
             component={VerifyAccessOtp}
           />
           <Route exact path="/app/review/:id" component={Review} />
+          <Route exact path="/app/home/" component={Home} />
 
           <Route
             exact

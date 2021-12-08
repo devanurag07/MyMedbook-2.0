@@ -1,10 +1,18 @@
+from os import stat
+from django.contrib.auth.models import User
 from rest_framework import permissions
 from rest_framework import viewsets
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import action
+from users.serializers import UserSerializerReadOnly, UsersSerializer
 from queues.serializers import QueueSerializer, PrescriptionSerializer, PrescriptionDataSerializer
 from queues.models import Queue, Prescription, PrescriptionData
 from common.fastsms import send_message
+from users.models import QMUser, Roles, UserProfile
+from generics.constants import CUSTOMERS_USER_TYPE
+from generics.constants import Doctors_USER_TYPE
 
 
 # Create your views here.
@@ -29,7 +37,8 @@ class PrescriptionDataViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset()
         order_by = query_params.pop('order_by', None)
         status = query_params.pop('status', None)
-        query_set = queryset
+        query_set = self.get_queryset()
+
         if status is not None:
             query_set = query_set.filter(status=int(status))
         if order_by is not None:
@@ -106,7 +115,16 @@ class QueueViewSet(viewsets.ModelViewSet):
         if request.data['customer'] is None:
             form_data = request.data
             form_data['username'] = form_data['email']
-            from users.models import Roles, QMUser, Group, UserProfile
+
+            mobile = request.data.get("mobile", None)
+            if(not mobile == None):
+                mobile_exits = UserProfile.objects.filter(
+                    mobile=mobile).exists()
+
+            if(mobile_exits):
+                return Response({'mobileExists': True}, status=status.HTTP_401_UNAUTHORIZED)
+
+            from users.models import Roles, QMUser, Group
             from django.utils.crypto import get_random_string
             user = QMUser()
             user.__dict__.update(**form_data)
@@ -150,13 +168,28 @@ class QueueViewSet(viewsets.ModelViewSet):
         from django.db.models import Sum
         from payment.models import PaymentDetails
         payment_data = PaymentDetails.objects.aggregate(Sum('amount'))
-        return Response({
+
+        resp_data = {
             'total': query_set.count(),
+
             'pending': query_set.filter(status=0, deleted=False).count(),
             'closed': query_set.filter(status=1, deleted=False).count(),
             'deleted': query_set.filter(deleted=True).count(),
             'total_payment': payment_data['amount__sum']
-        })
+        }
+
+        if(request.user.is_superuser):
+            customer_role_id = Roles.objects.filter(
+                alias=CUSTOMERS_USER_TYPE).first().id
+            doctor_role_id = Roles.objects.filter(
+                alias=CUSTOMERS_USER_TYPE).first().id
+
+            resp_data["total_customers"] = QMUser.objects.filter(
+                profile__role_id=customer_role_id).count()
+            resp_data["total_doctors"] = QMUser.objects.filter(
+                profile__role_id=doctor_role_id).count()
+
+        return Response(resp_data)
 
     @action(methods=['get'], detail=False, url_path='high-charts')
     def high_charts(self, request, *args, **kwargs):
@@ -203,6 +236,26 @@ class QueueViewSet(viewsets.ModelViewSet):
         customer = queue.customer
         data = send_message(customer.profile.mobile, form_data['message'])
         return Response(data)
+
+    @action(methods=['get'], detail=True, url_path="get-queue")
+    def get_queue(self, request, *args, **kwargs):
+        queue_id = kwargs["pk"]
+        queue = get_object_or_404(Queue, pk=queue_id)
+
+        doctor_role = Roles.objects.filter(alias=Doctors_USER_TYPE).first()
+        is_doctor = str(doctor_role.id) in request.user.profile.role_id
+
+        has_personal_access = queue.customer == request.user
+
+        doctor_info = UserSerializerReadOnly(queue.created_by, many=False, context={
+            "request": request}).data
+
+        data = QueueSerializer(queue, many=False).data
+        data["doctor_info"] = doctor_info
+        if(request.user.is_superuser or is_doctor or has_personal_access):
+            return Response(data)
+
+        return Response("Not AUTHORIZED", status=status.HTTP_401_UNAUTHORIZED)
 
 
 class PrescriptionViewSet(viewsets.ModelViewSet):
@@ -277,19 +330,20 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
             prescription.name for prescription in prescriptionsObjs])
 
         message = 'Dear %s, \nHere is your prescription:\nClinic name: %s \nPrescription: %s \nNote: %s \n\n' \
-                  'Team MyMedbook' % (
-                      form_data['customer_name'], form_data['clinic_name'], prescriptionMsg, form_data['note'])
+            'Team MyMedbook' % (
+                form_data['customer_name'], form_data['clinic_name'], prescriptionMsg, form_data['note'])
         data = send_message(str(form_data['mobile']), message)
 
         try:
             if data.status_code == 200:
+
                 json_data = data.json()
                 queue = Queue.objects.get(id=request.data['queue_id'])
                 queue.status = 1
                 queue.save()
                 form_data['created_by_id'] = request.user.id
                 form_data['customer_id'] = queue.customer.id
-                form_data['prescription_id'] = pres_object.id
+                # form_data['prescription_id'] = pres_object.id
 
                 del form_data['prescription']
 
@@ -304,11 +358,13 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
 
                 self.send_next_queue_message(queue, request.user)
                 return Response(True)
+
             else:
                 return Response(data, status=400)
         except Exception as e:
-
             return Response(data, status=400)
+
+        return Response(data, status=400)
 
     def send_next_queue_message(self, queue, user):
         next_queue_list = Queue.objects.filter(

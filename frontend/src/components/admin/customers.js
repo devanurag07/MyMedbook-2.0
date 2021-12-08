@@ -61,10 +61,9 @@ class Customers extends Component {
           label: "Actions",
           actions: [
             {
-              label: "Edit",
-              className: "btn btn-primary btn-sm",
-              icon: true,
-              iconClass: "fa fa-pencil-square-o",
+              label: "View",
+              className: "btn btn-success btn-sm",
+              icon: false,
             },
           ],
           type: "action",
@@ -114,11 +113,9 @@ class Customers extends Component {
     }));
   };
   actionHandler = (param) => {
-    if (param.label === "Edit") {
-      this.setState((state) => ({
-        isCustomerModalOpen: !state.isCustomerModalOpen,
-        customerFormValues: param.rowData,
-      }));
+    if (param.label === "View") {
+      console.log(param);
+      this.props.history.push(`/app/patient/${param.rowData.id}`);
     } else if (param.label === "Approve") {
       postCall(BASE_URL + `api/users/activate-customer/`, {
         id: param.rowData.id,
@@ -160,6 +157,7 @@ class Customers extends Component {
         });
     }
   };
+
   addCustomerHandler = (event, values) => {
     event.preventDefault();
     values["id"] = this.state.customerFormValues.id;
@@ -177,7 +175,7 @@ class Customers extends Component {
       <React.Fragment>
         <div className="row p-3 mt-2">
           <div className="col">
-            <h4 className="">
+            <h4 className="primary-font-color">
               Customers
               {/* <button onClick={this.toggle} className="btn btn-primary btn-sm float-end" type="button">Add</button> */}
             </h4>

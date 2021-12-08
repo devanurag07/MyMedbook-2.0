@@ -7,11 +7,12 @@ from django.db.models.query import QuerySet
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
 from rest_framework import viewsets, status
+from rest_framework import response
 from rest_framework.decorators import list_route, action, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
+from rest_framework_jwt.serializers import User, VerifyJSONWebTokenSerializer
 from rest_framework_jwt.settings import api_settings
 from common.models import OtpRequests
 from common.fastsms import send_message
@@ -93,8 +94,11 @@ class UsersViewSet(viewsets.ModelViewSet):
     def get_customers(self, request, *args, **kwargs):
         from generics.constants import CUSTOMERS_USER_TYPE
         user_role = Roles.objects.filter(alias=CUSTOMERS_USER_TYPE).first()
-        query_set = QMUser.objects.filter(
-            profile__role_id=user_role.id, profile__created_by=self.request.user)
+        # query_set = QMUser.objects.filter(
+        #     profile__role_id=user_role.id, profile__created_by=self.request.user)
+
+        query_set = QMUser.objects.all().exclude(id=request.user.id)
+
         query_params = request.query_params.dict()
         search_text = query_params.pop('searchText', None)
         if search_text is not None:
@@ -112,7 +116,8 @@ class UsersViewSet(viewsets.ModelViewSet):
 
         from generics.constants import Doctors_USER_TYPE
         user_role = Roles.objects.filter(alias=Doctors_USER_TYPE).first()
-        query_set = QMUser.objects.filter(profile__role_id=user_role.id)
+        query_set = QMUser.objects.filter(
+            profile__role_id=user_role.id)
 
         serializer = UsersSerializer(
             query_set, many=True, context={"request": request})
@@ -126,6 +131,14 @@ class UsersViewSet(viewsets.ModelViewSet):
             user_role = Roles.objects.filter(alias='Customers').first()
             request.data['user_type'] = 'Customers'
             request.data['role_id'] = user_role.id
+
+        mobile = request.data.get("mobile", None)
+        if(not mobile == None):
+            mobile_exits = UserProfile.objects.filter(mobile=mobile).exists()
+
+            if(mobile_exits):
+                return Response({'mobileExists': True}, status=status.HTTP_401_UNAUTHORIZED)
+
         password = get_random_string(length=7)
         request.data['password'] = password
         user = super(self.__class__, self).create(request, *args, **kwargs)
@@ -162,6 +175,21 @@ class UsersViewSet(viewsets.ModelViewSet):
     def update_profile(self, request):
         user = self.request.user
         user.first_name = request.data['first_name']
+
+        email = request.data['email']
+        mobile = request.data["mobile"]
+
+        errors = {
+            'emailExists': False,
+            'mobileExists': False,
+
+        }
+
+        if(QMUser.objects.filter(email=email).exists()):
+            errors['emailExists'] = True
+        if(QMUser.objects.filter(profile__mobile=mobile)):
+            errors['mobileExists'] = True
+
         user.save()
         if hasattr(user, 'profile'):
             profile = user.profile
@@ -174,7 +202,14 @@ class UsersViewSet(viewsets.ModelViewSet):
             profile.user_type = 'Admin'
             profile.created_by = QMUser.objects.first()
 
-        profile.mobile = request.data['mobile']
+        if(not errors['emailExists']):
+            user.email = email
+            user.save()
+
+        if(not errors['mobileExists']):
+            profile.mobile = request.data['mobile']
+            profile.save()
+
         profile.address_line1 = request.data['address_line1']
 
         if 'agreement_file' in request.FILES:
@@ -201,6 +236,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
         profile.save()
         user_details = UsersSerializer(user, context={'request': request}).data
+        user_details["errors"] = errors
         return Response(user_details)
 
     @action(methods=['post'], detail=False, url_path='update-customer')
@@ -211,7 +247,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         user.email = request.data['email']
         user.save()
         profile = user.profile
-        profile.mobile = request.data['mobile']
+        profile.mobile = request.data[' mobile']
         profile.address_line1 = request.data['address_line1']
         profile.save()
         user_details = UsersSerializer(user, context={'request': request}).data
@@ -231,6 +267,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         user = QMUser.objects.get(id=request.data['id'])
         profile = user.profile
         profile.document_rejected = True
+        profile.document_verified = False
         profile.save()
         return Response(True)
 
@@ -259,6 +296,7 @@ class UsersViewSet(viewsets.ModelViewSet):
         username_list = [request.user.username, 'AnonymousUser']
         queryset = self.get_queryset().filter(
             is_active=1).exclude(username__in=username_list)
+
         order_by = query_params.pop('order_by', None)
         search_text = query_params.pop('searchText', None)
         customer = query_params.pop('customer', None)
@@ -275,12 +313,15 @@ class UsersViewSet(viewsets.ModelViewSet):
         user_role = Roles.objects.filter(alias=CUSTOMERS_USER_TYPE).first()
         doctor_role = Roles.objects.filter(alias=Doctors_USER_TYPE).first()
         if customer is not None:
-            query_set = query_set.filter(profile__role_id=user_role.id)
+            query_set = query_set.filter(
+                profile__role_id=user_role.id) | query_set.filter(
+                profile__role_id=doctor_role.id)
         else:
             query_set = query_set.exclude(profile__role_id=user_role.id)
 
         if document_verification is not None:
             query_set = query_set.filter(profile__role_id=doctor_role.id)
+            query_set = query_set.order_by("-profile__created_at")
         if order_by is not None:
             if order_by == 'full_name' or order_by == '-full_name':
                 order_by = order_by.replace('full_name', 'first_name')
@@ -368,6 +409,21 @@ class AdminViewset(viewsets.ModelViewSet):
         customer = QMUser.objects.filter(
             profile__role_id=customer_role.id, id=pk).first()
 
+        access_request = AccessRequest.objects.filter(
+            requested_by=request.user, requested_for=customer).first()
+
+        is_admin = request.user.is_superuser
+
+        if(not is_admin):
+            if(access_request):
+                access_status = access_request.status
+                if(access_status == "has_access"):
+                    print('hAS access')
+                else:
+                    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+            else:
+                return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = UsersSerializer(
             customer, context={"request": request})
 
@@ -378,14 +434,25 @@ class AdminViewset(viewsets.ModelViewSet):
 
         prescription = get_object_or_404(Prescription, id=pk)
 
-        access = get_object_or_404(
-            AccessRequest, requested_by=request.user, requested_for=prescription.customer)
-
-        if(access.status == "has_access" or request.user == prescription.customer):
+        if(request.user.is_superuser):
             data = PrescriptionSerializer(prescription).data
             return Response({'data': data})
 
-        return Response("No Permission", status=status.HTTP_401_UNAUTHORIZED)
+        elif (prescription.customer == request.user):
+            data = PrescriptionSerializer(prescription).data
+            return Response({'data': data})
+
+        else:
+            access = get_object_or_404(
+                AccessRequest, requested_by=request.user, requested_for=prescription.customer)
+
+            if(access.status == "has_access" or request.user == prescription.customer):
+                data = PrescriptionSerializer(prescription).data
+                return Response({'data': data})
+
+            return Response("No Permission", status=status.HTTP_401_UNAUTHORIZED)
+
+        return Response({})
 
 
 class UserMViewSet(viewsets.ModelViewSet):
@@ -408,7 +475,8 @@ class UserMViewSet(viewsets.ModelViewSet):
     def get_myrequests(self, request, *args, **kwargs):
 
         usr = request.user
-        queryset = AccessRequest.objects.filter(requested_for=usr)
+        queryset = AccessRequest.objects.filter(
+            requested_for=usr).order_by("-id")
         data = AccessRequestSerializer(queryset, many=True).data
 
         return Response({"records": data, "totalRecords": queryset.count()})
@@ -422,9 +490,6 @@ class UserMViewSet(viewsets.ModelViewSet):
         if(access_request.requested_for == currentUser):
             access_request.status = "has_access"
             access_request.save()
-            currentUser.profile.doctors_whitelist.add(
-                access_request.requested_by)
-            currentUser.save()
 
             return Response({"status": "has_access"})
         else:
@@ -439,9 +504,6 @@ class UserMViewSet(viewsets.ModelViewSet):
         if(access_request.requested_for == currentUser):
             access_request.status = "rejected"
             access_request.save()
-            currentUser.profile.doctors_whitelist.remove(
-                access_request.requested_by)
-            currentUser.save()
 
             return Response({"status": "rejected"})
         else:
@@ -486,26 +548,23 @@ class DoctorsMViewSet(viewsets.ModelViewSet):
     @action(methods=["get"], detail=True, url_path="get-customer-detail")
     def get_customer_details(self, request, pk=None, *args, **kwargs):
         customer = QMUser.objects.get(pk=pk)
+        currentDoctor = request.user
 
-        if(request.user in customer.profile.doctors_whitelist.all()):
-            data = UsersSerializer(customer, context={"request": request}).data
-            return Response({"data": data, 'status': "has_access"})
+        access_request = AccessRequest.objects.filter(
+            requested_by=currentDoctor, requested_for=customer)
 
+        if(access_request.exists()):
+
+            access_request = access_request.first()
+            patientData = {}
+
+            if(access_request.status == "has_access"):
+                patientData = UsersSerializer(access_request.requested_for, context={
+                    "request": request}).data
+
+            return Response({'status': access_request.status, 'patientData': patientData, 'data': patientData})
         else:
-            access_request = AccessRequest.objects.filter(
-                requested_by=request.user, requested_for=customer)
-
-            if(access_request.exists()):
-
-                access_request = access_request.first()
-                patientData = {}
-                if(access_request.status == "has_access"):
-                    patientData = UsersSerializer(access_request.requested_for, context={
-                                                  "request": request}).data
-
-                return Response({'status': access_request.status, 'patientData': patientData})
-            else:
-                return Response({'status': "no access"})
+            return Response({'status': "no access"})
 
     @action(methods=["get"], detail=True, url_path="get-customer-info")
     def get_customer_info(self, request, pk=None, *args, **kwargs):
@@ -514,47 +573,57 @@ class DoctorsMViewSet(viewsets.ModelViewSet):
 
     @action(methods=["post"], detail=True, url_path="send-accessrequest")
     def send_accessrequest(self, request, pk=None, *args, **kwargs):
-        customer = QMUser.objects.get(pk=pk)
-        access_request = AccessRequest.objects.get_or_create(
-            requested_by=request.user, requested_for=customer, status="pending")
+        try:
+            customer = QMUser.objects.get(pk=pk)
 
-        mobile_no = customer.profile.mobile
-        otp = random.randrange(1, 10**6)
-        OtpRequests.objects.filter(phone_number=mobile_no).delete()
+            AccessRequest.objects.filter(
+                requested_by=request.user, requested_for=customer).delete()
 
-        otp_request = OtpRequests.objects.create(
-            otp=otp, phone_number=mobile_no)
+            AccessRequest.objects.get_or_create(
+                requested_by=request.user, requested_for=customer)
 
-        send_message(mobile_no, f"Hello your One Time Password is {otp}")
+            mobile_no = customer.profile.mobile
+            otp = random.randrange(1, 10**6)
+            OtpRequests.objects.filter(phone_number=mobile_no).delete()
 
-        print("Your otp is .... "+str(otp))
+            otp_request = OtpRequests.objects.create(
+                otp=otp, phone_number=mobile_no)
 
-        return Response({'status': "pending"})
+            send_message(mobile_no, f"Hello your One Time Password is {otp}")
+
+            print("Your otp is .... "+str(otp))
+
+            return Response({'status': "pending"})
+        except Exception as e:
+            return Response({"e": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
     @action(methods=["post"], detail=True, url_path="verify-otp")
     def verify_otp(self, request, pk=None, *args, **kwargs):
+
         customer = QMUser.objects.get(pk=pk)
         mobile_no = customer.profile.mobile
-
         user_otp = request.data.get("otp", 2)
 
-        otp_exists = OtpRequests.objects.filter(
-            phone_number=mobile_no, otp=user_otp).exists()
+        access_request = AccessRequest.objects.filter(
+            requested_by=request.user, requested_for=customer).first()
 
-        if(otp_exists):
-            access_request = AccessRequest.objects.filter(
-                requested_by=request.user, requested_for=customer).first()
+        if(access_request):
 
-            if(access_request):
-                access_request.status = "has_access"
-                access_request.save()
+            access_request.status = "has_access"
+            access_request.save()
+
+            otp_exists = OtpRequests.objects.filter(
+                phone_number=mobile_no, otp=user_otp).exists()
+
+            if(otp_exists):
+
                 return Response({"status": "has_access", "verified": True})
 
             else:
-                return Response("Not Found", status=status.HTTP_401_UNAUTHORIZED)
+                return Response({"status": "invalid"}, status=status.HTTP_401_UNAUTHORIZED)
 
         else:
-            return Response("Not Found", status=status.HTTP_404_NOT_FOUND)
+            return Response({"status": "not_found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 class PasswordReset(APIView):

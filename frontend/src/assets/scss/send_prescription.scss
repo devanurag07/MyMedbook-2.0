@@ -17,7 +17,7 @@
   height: 230px;
   overflow-y: scroll;
   margin-top: 1em;
-  border-bottom: 1px solid grey;
+  border-bottom: 1px solid #d5c9c9;
 
   margin-bottom: 0.2em;
 }
@@ -27,14 +27,20 @@
   max-width: 70%;
 }
 
+@media (max-width: 600px) {
+  .modal-dialog {
+    max-width: 100%;
+  }
+}
+
 //Access Box---
 .access_box {
   min-height: 10vh;
-  color: #0a58ca;
+  // color: #0a58ca;
 }
 
 .bg-light-blue {
-  background-color: #e0f7fb;
+  background-color: #e0f7fb !important;
 }
 
 .access_box .MuiGrid-item {
@@ -42,11 +48,6 @@
   justify-content: center;
   align-items: center;
 }
-
-.access_box .btn-success {
-  background-color: #0a58ca;
-}
-
 .flex-end {
   display: flex;
   align-items: center;

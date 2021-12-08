@@ -27,7 +27,15 @@ class SmartTable extends Component {
     };
     this.pageChanged = this.pageChanged.bind(this);
     this.inputChangedHandler = this.inputChangedHandler.bind(this);
+
+    if (this.props.pagination == undefined) {
+      this.pagination = true;
+    } else {
+      this.pagination = this.props.pagination;
+    }
+    console.log(this.pagination);
   }
+
   fetchRecords(offset, end) {
     if (offset == 0 && this.state.selectedPage > 1) {
       this.page = 1;
@@ -272,39 +280,45 @@ class SmartTable extends Component {
             </Table>
           </div>
         </div>
-        <div className="row">
-          <div className="col-2">
-            <div className="form-group row">
-              <label className="col-sm-4 col-form-label col-form-label-sm">
-                Size
-              </label>
-              <div className="col-sm-8">
-                <BootstrapInput
-                  type="select"
-                  className="sm-drop-down bs"
-                  value={this.state.pageSize}
-                  onChange={this.changeLimit.bind(this)}
-                  name="pageSize"
-                  bsSize="sm"
-                >
-                  {this.pageSizeOptions.map((s, i) => (
-                    <option key={i} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </BootstrapInput>
+
+        {this.pagination == true ? (
+          <div className="row">
+            <div className="col-2">
+              <div className="form-group row">
+                <label className="col-sm-4 col-form-label col-form-label-sm">
+                  Size
+                </label>
+                <div className="col-sm-8">
+                  <BootstrapInput
+                    type="select"
+                    className="sm-drop-down bs"
+                    value={this.state.pageSize}
+                    onChange={this.changeLimit.bind(this)}
+                    name="pageSize"
+                    bsSize="sm"
+                  >
+                    {this.pageSizeOptions.map((s, i) => (
+                      <option key={i} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </BootstrapInput>
+                </div>
               </div>
             </div>
+
+            <div className="col-10">
+              <PaginationComponent
+                size="sm"
+                totalItems={this.state.totalRecords}
+                pageSize={this.state.pageSize}
+                onSelect={this.pageChanged}
+              />
+            </div>
           </div>
-          <div className="col-10">
-            <PaginationComponent
-              size="sm"
-              totalItems={this.state.totalRecords}
-              pageSize={this.state.pageSize}
-              onSelect={this.pageChanged}
-            />
-          </div>
-        </div>
+        ) : (
+          ""
+        )}
       </React.Fragment>
     );
   }

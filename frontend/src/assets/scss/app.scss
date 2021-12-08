@@ -496,12 +496,14 @@ $gray-900: #323a46;
 .app-sidepanel-footer .app-nav-footer {
   margin-bottom: 0;
 }
+
 @media (max-width: 1199.98px) {
-  .app-sidepanel {
+  .hide-panel {
     transition: all 0.4s ease-in-out;
     left: -400px;
   }
 }
+
 @media (max-width: 1199.98px) and (prefers-reduced-motion: reduce) {
   .app-sidepanel {
     transition: none;
@@ -530,11 +532,13 @@ $gray-900: #323a46;
     background: rgba(0, 0, 0, 0.35);
   }
 }
-@media (min-width: 1200px) {
-  .app-wrapper {
-    margin-left: 250px;
-  }
+
+// @media (min-width: 1200px) {
+.app-wrapper {
+  margin-left: 250px;
 }
+// }
+
 .app {
   min-height: 100vh;
   height: 100%;
@@ -667,4 +671,52 @@ img.active {
 // Custom CSS Anurag
 .app-sidepanel {
   border-right: 2px solid #e4e4e4;
+}
+
+@media (max-width: 1200px) {
+  .nav-item a span {
+    display: none;
+  }
+
+  .nav-item a {
+    display: flex !important;
+    justify-content: center;
+  }
+
+  .nav-item {
+    margin-left: 0 !important;
+  }
+
+  .app-branding .logo-icon {
+    width: 50px;
+    height: unset;
+  }
+
+  .sidepanel-inner {
+    width: 129px !important;
+  }
+
+  .app-branding {
+    padding: 0;
+    margin: 0;
+    padding: 1em;
+    margin-left: 0 !important;
+    margin-top: 2em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .logo-title {
+      font-size: 1.1em;
+    }
+  }
+
+  .hide-app {
+    margin-left: 129px;
+  }
+
+  .show-app {
+    margin-left: 0px;
+  }
 }
