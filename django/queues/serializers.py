@@ -21,12 +21,16 @@ class QueueSerializer(serializers.ModelSerializer):
     purpose_of_visit = serializers.ReadOnlyField(
         source='prescription_queue.purpose_of_visit')
     note = serializers.CharField(allow_null=True, allow_blank=True)
+    prescription_id = serializers.SerializerMethodField()
+
+    def get_prescription_id(self, obj):
+        return obj.queue_prescription.id
 
     class Meta:
         model = Queue
         fields = (
             'id', 'customer', 'customer_name', 'email', 'mobile', 'address', 'note', 'status',
-            'deleted', 'created_by', 'created_at', 'purpose_of_visit')
+            'deleted', 'created_by', 'created_at', 'purpose_of_visit', 'prescription_id')
         read_only_fields = ['deleted', 'status']
 
 

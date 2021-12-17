@@ -39,7 +39,7 @@ class Prescription(models.Model):
     symptoms = models.TextField()
     purpose_of_visit = models.TextField()
     deleted = models.BooleanField(default=False)
-    queue = models.OneToOneField(Queue, related_name='prescription_queue',
+    queue = models.OneToOneField(Queue, related_name='queue_prescription',
                                  on_delete=models.CASCADE)
     created_by = models.ForeignKey(QMUser, related_name='prescription_created_by',
                                    on_delete=models.CASCADE)

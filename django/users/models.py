@@ -52,6 +52,10 @@ class UserProfile(models.Model):
 
     agreement_file = models.FileField(
         upload_to='customer/agreement/%Y-%m-%d-%H-%M-%S', blank=True, null=True)
+
+    your_sign = models.ImageField(
+        upload_to='customer/agreement/%Y-%m-%d-%H-%M-%S', blank=True, null=True)
+
     degree_certificate = models.FileField(
         upload_to='customer/degree/%Y-%m-%d-%H-%M-%S', blank=True, null=True)
     doctor_registration = models.FileField(

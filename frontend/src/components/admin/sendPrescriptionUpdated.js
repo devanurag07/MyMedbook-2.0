@@ -49,6 +49,7 @@ class SendPrescriptionUpdated extends Component {
     this.getMedicinesList = this.getMedicinesList.bind(this);
     this.removeItem = this.removeItem.bind(this);
     this.tooglePrintPdf = this.tooglePrintPdf.bind(this);
+    this.cancelBtn = this.cancelBtn.bind(this);
 
     this.searchCustomer = this.searchCustomer.bind(this);
     this.state = {
@@ -180,6 +181,10 @@ class SendPrescriptionUpdated extends Component {
       : null;
     values["prescriptionsData"] = this.state.prescriptionsData;
 
+    if (this.state.saved) {
+      this.setState({ printPdfModal: !this.state.printPdfModal });
+    }
+
     if (this.getMedicinesList().length == 0) {
       this.notify("Please add the medicines...");
       return;
@@ -282,7 +287,10 @@ class SendPrescriptionUpdated extends Component {
   tooglePrintPdf(e) {
     // e.preventDefault();
     // this.submit_ref.click();
-    // return { ...this.state, printPdfModal: !this.state.printPdfModal };
+  }
+
+  cancelBtn(e) {
+    this.setState({ printPdfModal: false });
   }
 
   render() {
@@ -799,11 +807,7 @@ class SendPrescriptionUpdated extends Component {
                 />
               </ModalBody>
               <ModalFooter>
-                <Button
-                  color="secondary"
-                  onClick={this.tooglePrintPdf}
-                  size="sm"
-                >
+                <Button color="secondary" onClick={this.cancelBtn} size="sm">
                   Cancel
                 </Button>
               </ModalFooter>

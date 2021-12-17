@@ -73,6 +73,7 @@ class Profile extends Component {
     }
 
     if (errors.length > 0) {
+      toast.error("Please fill all the fields above correctly.", {});
       return;
     }
 
@@ -91,6 +92,14 @@ class Profile extends Component {
     }
     postCall(BASE_URL + `api/users/update-profile/`, formData).then((r) => {
       this.props.loginUserSuccess(r.data);
+
+      if (
+        this.props.user.document_verified == false &&
+        this.props.user.document_rejected == false
+      ) {
+        this.props.history.push("/app/dashboard");
+      }
+
       this.notify();
     });
   };
@@ -400,6 +409,25 @@ class Profile extends Component {
                           className="form-control"
                           placeholder="Please enter clinic_name"
                         />
+                      </div>
+                    </div>
+
+                    <div className="row">
+                      <div className="col-sm-6">
+                        <AvInput
+                          type="file"
+                          accept=".*svg"
+                          bsSize="sm"
+                          name="your_sign"
+                          id="your_sign"
+                          onChange={this.onFileChange}
+                          required={this.props.user.your_sign ? false : true}
+                          className="form-control"
+                          style={{ height: "auto" }}
+                        />
+                      </div>
+                      <div className="col-sm-6">
+                        <a href={this.props.user.your_sign}>Your Sign</a>
                       </div>
                     </div>
                   </React.Fragment>

@@ -65,6 +65,20 @@ class Queue extends Component {
           },
         },
         {
+          dataField: "subCategory",
+          styles: {
+            width: "10%",
+          },
+          label: "Prescription",
+          actions: [
+            {
+              label: "View",
+              className: "btn btn-success btn-sm ",
+            } /* { label: 'Edit', className: "btn btn-primary btn-sm", icon: true, iconClass: "fa fa-pencil-square-o" } */,
+          ],
+          type: "action",
+        },
+        {
           dataField: "status",
           label: "Status",
           lookupData: QUEUE_STATUS,
@@ -77,6 +91,7 @@ class Queue extends Component {
             width: "10%",
           },
         },
+
         {
           dataField: "subCategory",
           styles: {
@@ -309,6 +324,10 @@ class Queue extends Component {
         customer: param.rowData.customer,
         isEditAction: true,
       }));
+    } else if ((param.label = "View")) {
+      const prescription_id = param.rowData.prescription_id;
+      this.props.history.push(`/app/patient/presc/${prescription_id}`);
+      console.log(param.rowData);
     } else {
       this.setState((state) => ({
         isDeleteModalOpen: !state.isDeleteModalOpen,

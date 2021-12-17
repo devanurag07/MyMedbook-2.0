@@ -35,6 +35,8 @@ const PrescriptionPdf = ({ medicine_list_, data, doctor_info, callBack }) => {
     doctorInfo = doctor_info;
   }
 
+  console.log(doctorInfo.your_sign);
+
   const clinic_name = doctorInfo.clinic_name;
   const doctor_name = doctorInfo.full_name;
 
@@ -105,21 +107,33 @@ const PrescriptionPdf = ({ medicine_list_, data, doctor_info, callBack }) => {
       className="prescription-pdf"
       id="pdf-doc"
       ref={ref}
-      style={{ background: "white" }}
+      style={{ background: "white", padding: "1em" }}
     >
       <Grid item xs={12} className="mymedbook">
         <Grid container>
           <Grid item xs={4}>
             <h5>
-              <span className="primary-font-color">My</span>Medbook
+              <span className="primary-font-color">www.</span>mymedbook.in
             </h5>
           </Grid>
           <Grid item xs></Grid>
-          <Grid item xs={4} style={{ display: "flex", justifyContent: "end" }}>
-            <h5>
+          <Grid
+            item
+            xs={4}
+            style={{
+              display: "flex",
+              justifyContent: "end",
+              flexDirection: "column",
+            }}
+          >
+            <h5 style={{ textAlign: "end" }}>
               <span className="primary-font-color">Time - </span>
               {formatAMPM(new Date())}{" "}
             </h5>
+            <h6 style={{ textAlign: "end" }}>
+              <span className="primary-font-color">Date - </span>
+              {new Date().toLocaleDateString()}
+            </h6>
           </Grid>
         </Grid>
       </Grid>
@@ -175,6 +189,19 @@ const PrescriptionPdf = ({ medicine_list_, data, doctor_info, callBack }) => {
         </Grid>
       </Grid>
 
+      <Grid
+        container
+        style={{
+          marginTop: "2em",
+          display: "flex",
+          justifyContent: "space-between",
+        }}
+      >
+        <Grid item sm></Grid>
+        <Grid item sm style={{ display: "flex", justifyContent: "end" }}>
+          <img src={doctorInfo.your_sign} alt="" style={{ width: "200px" }} />
+        </Grid>
+      </Grid>
       <footer style={{ marginTop: "1em" }}>
         <div className="pdf-footer">{fullAdress}</div>
       </footer>

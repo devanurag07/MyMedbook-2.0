@@ -51,6 +51,9 @@ class UsersSerializer(serializers.HyperlinkedModelSerializer):
     agreement_file = serializers.FileField(
         source='profile.agreement_file', allow_null=True, required=False)
 
+    your_sign = serializers.ImageField(
+        source='profile.your_sign', allow_null=True, required=False)
+
     degree_certificate = serializers.FileField(
         source='profile.degree_certificate', allow_null=True, required=False)
 
@@ -102,6 +105,7 @@ class UsersSerializer(serializers.HyperlinkedModelSerializer):
             'degree_certificate',
             'doctor_registration',
             'clinic_address_proof',
+            'your_sign',
 
             'doctor_registeration_no',
             'clinic_registeration_no')
@@ -154,13 +158,16 @@ class UserSerializerReadOnly(serializers.ModelSerializer):
 
                                         required=False)
 
+    your_sign = serializers.ImageField(
+        source='profile.your_sign', allow_null=True, required=False)
+
     class Meta:
         model = QMUser
         fields = (
             'id', 'username', 'first_name', 'last_name', 'mobile',
             'email', 'role_id', 'is_superuser', 'mobile', 'city',
             'clinic_name',
-            'state', 'country', 'pin_code'
+            'state', 'country', 'pin_code', 'your_sign'
         )
 
 

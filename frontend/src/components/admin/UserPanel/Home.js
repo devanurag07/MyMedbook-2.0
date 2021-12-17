@@ -116,9 +116,12 @@ const Home = (props) => {
             </h6>
           </div>
         </div>
-        {records.map((prescription) => {
-          return <PrevRecordItem prescription={prescription} />;
-        })}
+        {records
+          .slice(0, 3)
+          .reverse()
+          .map((prescription) => {
+            return <PrevRecordItem prescription={prescription} />;
+          })}
       </div>
       <div className="access-container">
         <div>

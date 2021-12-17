@@ -29,9 +29,12 @@ from generics.defaults import AppDefaults
 from users.models import QMUser, PasswordResetTokens, Roles
 from users.serializers import UsersSerializer, GroupSerializer
 from users.models import AccessRequest
-
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.base import ContentFile
 
 import random
+
+from io import BytesIO
 
 
 def jwt_response_payload_handler(token, user=None, request=None):
@@ -233,6 +236,22 @@ class UsersViewSet(viewsets.ModelViewSet):
 
         if 'doctor_registeration_no' in request.data:
             profile.doctor_registeration_no = request.data['doctor_registeration_no']
+
+        if 'your_sign' in request.FILES:
+            img = request.FILES['your_sign']
+            # from PIL import Image
+            # img = Image.open(img)
+            # img.thumbnail((50, 50))
+            # buffer = BytesIO()
+
+            # img.save(fp=buffer, format="svg")
+
+            # img_file = ContentFile(buffer.getvalue())
+
+            # img_uploaded_file = InMemoryUploadedFile(
+            #     img_file, 'your_sign', f"image-{str(request.user.username)}", "image/svg", img_file.tell, None)
+
+            profile.your_sign = img
 
         profile.save()
         user_details = UsersSerializer(user, context={'request': request}).data
@@ -439,6 +458,10 @@ class AdminViewset(viewsets.ModelViewSet):
             return Response({'data': data})
 
         elif (prescription.customer == request.user):
+            data = PrescriptionSerializer(prescription).data
+            return Response({'data': data})
+
+        elif (prescription.created_by == request.user):
             data = PrescriptionSerializer(prescription).data
             return Response({'data': data})
 
