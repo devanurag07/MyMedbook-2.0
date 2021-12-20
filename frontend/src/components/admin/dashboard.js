@@ -444,10 +444,10 @@ class Dashboard extends Component {
           }
         });
     } else {
-      if (userEmail == event.target.value) {
-        this.setState({ emailExist: false });
-        return;
-      }
+      // if (userEmail == event.target.value) {
+      //   this.setState({ emailExist: false });
+      //   return;
+      // }
 
       postCall(BASE_URL + `api/common/check-email-exist/`, {
         email: event.target.value,

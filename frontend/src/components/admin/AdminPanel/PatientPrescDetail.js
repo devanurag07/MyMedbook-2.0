@@ -17,6 +17,7 @@ import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
 import PrescriptionPdf from "../prescriptionPdf";
 import { getCall } from "../../../helpers/axiosUtils";
 import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -51,24 +52,28 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const PatientPrescDetail = (props) => {
-  const presc_id = props.match.params.id;
-
   const classes = useStyles();
+
+  const presc_id = props.match.params.id;
 
   const [prescriptionData, setPrescriptionData] = useState({
     prescription_list: [],
   });
 
   const [queueData, setQueueData] = useState({});
+  const currentUser = useSelector((state) => state.Auth.user);
 
   const [printPdfModal, setPrintPdfModal] = useState(false);
+
+  const showDownlodBtn =
+    queueData.created_by == currentUser.id ||
+    prescriptionData.customer == currentUser.id;
 
   const getPrescriptionData = () => {
     const url = `${BASE_URL}api/admin_m/${presc_id}/get-prescription/`;
     axios.get(url).then((resp) => {
       setPrescriptionData(resp.data.data);
       getMedicinesList();
-      console.log(resp.data);
     });
   };
 
@@ -88,6 +93,7 @@ const PatientPrescDetail = (props) => {
       if (r.status == 200) {
         let queueData = r.data;
         setQueueData(queueData);
+        console.log(queueData);
       } else {
         if (r.status == 401) {
           toast("You do not have access to queue details");
@@ -116,7 +122,6 @@ const PatientPrescDetail = (props) => {
         drug_to_taken: obj.drug_to_taken,
       });
 
-      console.log(medicines_list);
       idx += 1;
     }
 
@@ -166,17 +171,19 @@ const PatientPrescDetail = (props) => {
         </Grid>
       </Grid>
 
-      <Grid container>
-        <Grid item sm={3} style={{ marginTop: "2em" }}>
-          <button
-            className="btn-primary btn-sm"
-            style={{ marginBottom: "2em" }}
-            onClick={tooglePrintPdf}
-          >
-            Download Prescription
-          </button>
+      {showDownlodBtn && (
+        <Grid container>
+          <Grid item sm={3} style={{ marginTop: "2em" }}>
+            <button
+              className="btn-primary btn-sm"
+              style={{ marginBottom: "2em" }}
+              onClick={tooglePrintPdf}
+            >
+              Download Prescription
+            </button>
+          </Grid>
         </Grid>
-      </Grid>
+      )}
 
       <div className="modal-col">
         <Modal

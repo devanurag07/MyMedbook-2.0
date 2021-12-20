@@ -408,6 +408,7 @@ class Profile extends Component {
                           }
                           className="form-control"
                           placeholder="Please enter clinic_name"
+                          required
                         />
                       </div>
                     </div>

@@ -295,7 +295,7 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
 
     @action(methods=['post'], detail=False, url_path='auth-login')
     def auth_login(self, request, **kwargs):
-        if True:
+        try:
             form_data = request.data
             user = QMUser.objects.filter(
                 username=form_data['username']).first()
@@ -327,9 +327,9 @@ class OtpRequestViewSet(viewsets.ModelViewSet):
                 return Response(user_details)
 
             return Response(False, status=400)
-        # except Exception as e:
-        #     pdb.set_trace()
-        #     return Response(False, status=400)
+        except Exception as e:
+            # pdb.set_trace()
+            return Response(False, status=400)
 
     @action(methods=['post'], detail=False, url_path='reset-password-otp')
     def reset_password_otp(self, request, **kwargs):

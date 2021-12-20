@@ -181,9 +181,9 @@ class SendPrescriptionUpdated extends Component {
       : null;
     values["prescriptionsData"] = this.state.prescriptionsData;
 
-    if (this.state.saved) {
-      this.setState({ printPdfModal: !this.state.printPdfModal });
-    }
+    // if (this.state.saved) {
+    //   this.setState({ printPdfModal: !this.state.printPdfModal });
+    // }
 
     if (this.getMedicinesList().length == 0) {
       this.notify("Please add the medicines...");
@@ -194,9 +194,10 @@ class SendPrescriptionUpdated extends Component {
     postCall(BASE_URL + `api/prescription/`, values)
       .then((r) => {
         this.notify("Prescription Saved!");
-        this.setState({ printPdfModal: !this.state.printPdfModal });
-        this.setState({ saved: true });
-        // this.props.history.push(`/app/dashboard`);
+
+        // this.setState({ printPdfModal: !this.state.printPdfModal });
+        // this.setState({ saved: true });
+        this.props.history.push(`/app/dashboard`);
       })
       .catch((er) => {
         this.notify("Failed to sent prescription");
@@ -774,9 +775,8 @@ class SendPrescriptionUpdated extends Component {
                           color="primary"
                           className="float-end"
                           type="submit"
-                          onClick={this.tooglePrintPdf}
                         >
-                          Print
+                          Save
                         </Button>
                       </div>
                     </div>

@@ -24,7 +24,10 @@ class QueueSerializer(serializers.ModelSerializer):
     prescription_id = serializers.SerializerMethodField()
 
     def get_prescription_id(self, obj):
-        return obj.queue_prescription.id
+        try:
+            return obj.queue_prescription.id
+        except:
+            return 0
 
     class Meta:
         model = Queue
@@ -50,7 +53,6 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
     def get_doctor_name(self, obj):
         return obj.created_by.first_name
-        # return UsersSerializer(obj.created_by).data
 
     class Meta:
         model = Prescription
@@ -58,5 +60,5 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             'id', 'customer', 'customer_name', 'clinic_name', 'queue', 'mobile', 'prescription',
             'note', 'prescription_name', 'prescription_drug_to_taken', 'deleted', 'created_by',
             'created_at', 'prescription_list',
-            'doctor_name', 'purpose_of_visit', 'symptoms')
+            'purpose_of_visit', 'symptoms', 'doctor_name')
         read_only_fields = ['deleted']

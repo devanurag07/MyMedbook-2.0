@@ -161,17 +161,18 @@ class QueueViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='reports')
     def queue_reports(self, request, *args, **kwargs):
         user = self.request.user
+
         if user.is_superuser:
             query_set = self.queryset
         else:
             query_set = self.queryset.filter(created_by=user)
+
         from django.db.models import Sum
         from payment.models import PaymentDetails
         payment_data = PaymentDetails.objects.aggregate(Sum('amount'))
 
         resp_data = {
             'total': query_set.count(),
-
             'pending': query_set.filter(status=0, deleted=False).count(),
             'closed': query_set.filter(status=1, deleted=False).count(),
             'deleted': query_set.filter(deleted=True).count(),
@@ -179,10 +180,11 @@ class QueueViewSet(viewsets.ModelViewSet):
         }
 
         if(request.user.is_superuser):
+
             customer_role_id = Roles.objects.filter(
                 alias=CUSTOMERS_USER_TYPE).first().id
             doctor_role_id = Roles.objects.filter(
-                alias=CUSTOMERS_USER_TYPE).first().id
+                alias=Doctors_USER_TYPE).first().id
 
             resp_data["total_customers"] = QMUser.objects.filter(
                 profile__role_id=customer_role_id).count()
@@ -243,15 +245,21 @@ class QueueViewSet(viewsets.ModelViewSet):
         queue = get_object_or_404(Queue, pk=queue_id)
 
         doctor_role = Roles.objects.filter(alias=Doctors_USER_TYPE).first()
-        is_doctor = str(doctor_role.id) in request.user.profile.role_id
 
+        is_doctor = str(doctor_role.id) in str(request.user.profile.role_id)
         has_personal_access = queue.customer == request.user
+
+        data = QueueSerializer(queue, many=False).data
 
         doctor_info = UserSerializerReadOnly(queue.created_by, many=False, context={
             "request": request}).data
 
-        data = QueueSerializer(queue, many=False).data
-        data["doctor_info"] = doctor_info
+        if(has_personal_access):
+            data["doctor_info"] = doctor_info
+        # if its other doctor
+        elif (not(queue.created_by == request.user)):
+            data["doctor_name"] = "x.x.x"
+
         if(request.user.is_superuser or is_doctor or has_personal_access):
             return Response(data)
 

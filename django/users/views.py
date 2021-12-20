@@ -471,6 +471,8 @@ class AdminViewset(viewsets.ModelViewSet):
 
             if(access.status == "has_access" or request.user == prescription.customer):
                 data = PrescriptionSerializer(prescription).data
+                data["doctor_name"] = "x.x.x"
+
                 return Response({'data': data})
 
             return Response("No Permission", status=status.HTTP_401_UNAUTHORIZED)
