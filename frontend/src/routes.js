@@ -1,5 +1,6 @@
 import React from "react";
 import { Route, useLocation, Redirect } from "react-router-dom";
+import InvoicePage from "./components/admin/DoctorPanel/BillingPages/InvoicePage";
 import { isUserAuthenticated, getLoggedInUser } from "./helpers/authUtils";
 // lazy load all the views
 const Home = React.lazy(() => import("./components/home/home"));
@@ -180,6 +181,13 @@ const routes = [
     name: "Pdf",
     component: PrescriptionPdf,
     route: PrivateRoute,
+  },
+  {
+    path: "/invoice",
+    exact: true,
+    name: "Invoice",
+    component: InvoicePage,
+    route: Route,
   },
   {
     path: "notfound",

@@ -7,11 +7,11 @@ HASH_ALG = 'HS256'
 DB_CONFIG = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydatabase',
+        'NAME': 'mydb',
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'USER': 'anurag',
-        'PASSWORD': 'devil@008',
+        'PASSWORD': 'password',
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'charset': 'utf8mb4',

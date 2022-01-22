@@ -329,6 +329,7 @@ class PrescriptionViewSet(viewsets.ModelViewSet):
                 pres_object = PrescriptionData()
                 pres_object.name = prescription["medicine_name"]
                 pres_object.created_by = request.user
+                pres_object.note = prescription['note']
                 pres_object.drug_to_taken = prescription['drug_to_taken']
 
                 pres_object.save()

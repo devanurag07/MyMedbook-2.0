@@ -18,6 +18,8 @@ import PrescriptionPdf from "../prescriptionPdf";
 import { getCall } from "../../../helpers/axiosUtils";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import PrescriptionPage from "../DoctorPanel/BillingPages/PrescriptionPage";
+import InvoicePage from "../DoctorPanel/BillingPages/InvoicePage2";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -120,6 +122,7 @@ const PatientPrescDetail = (props) => {
         idx,
         medicine_name: obj.name,
         drug_to_taken: obj.drug_to_taken,
+        note: obj.note,
       });
 
       idx += 1;
@@ -191,11 +194,26 @@ const PatientPrescDetail = (props) => {
           toggle={tooglePrintPdf}
           // className={className}
           // className={classes.root}
-          // style={{ maxWidth: "100%" }}
         >
           <ModalHeader toggle={tooglePrintPdf}>Print Prescription</ModalHeader>
           <ModalBody>
-            <PrescriptionPdf
+            {/* <PrescriptionPdf
+              medicine_list_={getMedicinesList()}
+              data={queueData}
+              doctor_info={
+                queueData.doctor_info ? queueData.doctor_info : undefined
+              }
+            /> */}
+
+            {/* <PrescriptionPage
+              medicine_list_={getMedicinesList()}
+              data={queueData}
+              doctor_info={
+                queueData.doctor_info ? queueData.doctor_info : undefined
+              }
+            /> */}
+
+            <InvoicePage
               medicine_list_={getMedicinesList()}
               data={queueData}
               doctor_info={

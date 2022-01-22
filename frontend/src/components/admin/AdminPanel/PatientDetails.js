@@ -116,10 +116,10 @@ export const PrescriptionListItem = ({ prescription }) => {
           Age - xx
         </Grid>
         <Grid item sm={3}>
-          Note - {prescription.note}
+          Symptoms - {prescription.symptoms.slice(0, 4) + "..."}
         </Grid>
         <Grid item sm={3}>
-          Doctor - {prescription.doctor_name}
+          Purpose of visit - {prescription.purpose_of_visit.slice(0, 7) + "..."}
         </Grid>
 
         <Grid

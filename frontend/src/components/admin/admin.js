@@ -28,6 +28,8 @@ import Review from "./UserPanel/Review";
 import Home from "./UserPanel/Home";
 import AskAccessPermission from "./AdminPanel/AskAccessPermission";
 import VerifyAccessOtp from "./AdminPanel/VerifyAccessOtp";
+import InvoicePage from "./DoctorPanel/BillingPages/InvoicePage";
+import ScheduleDayWiseForm from "./DoctorPanel/Appoitment/Schedules/ScheduleDayWiseForm";
 
 const loading = () => <div></div>;
 class Admin extends Component {
@@ -107,6 +109,10 @@ class Admin extends Component {
             path="/app/document-verification"
             component={DocumentVerifications}
           />
+
+          {/* Appoitment */}
+
+          <Route exact path="/app/schedules" component={ScheduleDayWiseForm} />
         </Switch>
       </React.Fragment>
     );

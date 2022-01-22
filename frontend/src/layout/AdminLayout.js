@@ -200,6 +200,26 @@ class AdminLayout extends Component {
                             <span className="ms-2">Prescriptions</span>
                           </NavLink>
                         </li>
+                        <li className="nav-item ms-4">
+                          <NavLink
+                            to="/app/schedules"
+                            className="nav-link ps-1"
+                            activeClassName="active"
+                            aria-expanded="true"
+                          >
+                            <img
+                              src="/img/prescription.svg"
+                              className="in-active"
+                              alt="logo"
+                            />
+                            <img
+                              className="active"
+                              src="/img/prescription-active.svg"
+                              alt="logo"
+                            />
+                            <span className="ms-2">Schedules</span>
+                          </NavLink>
+                        </li>
                       </React.Fragment>
                     )}
                   {this.props.user && this.props.user.role_name == "Customers" && (

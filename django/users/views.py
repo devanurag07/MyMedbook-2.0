@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from rest_framework import permissions
 from rest_framework import viewsets, status
@@ -16,9 +17,11 @@ from rest_framework_jwt.serializers import User, VerifyJSONWebTokenSerializer
 from rest_framework_jwt.settings import api_settings
 from common.models import OtpRequests
 from common.fastsms import send_message
-from users.models import UserProfile
+# from django.users.permissions import IsDoctor
+from users.permissions import IsDoctor
+from users.models import AppointmentModel, TimeSlot, UserProfile
 from users.models import Review
-from users.serializers import AccessRequestSerializer
+from users.serializers import AccessRequestSerializer, AppoitmentSerializer
 from queues.models import Prescription
 from queues.serializers import PrescriptionSerializer
 from generics.constants import CUSTOMERS_USER_TYPE
@@ -649,6 +652,67 @@ class DoctorsMViewSet(viewsets.ModelViewSet):
 
         else:
             return Response({"status": "not_found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class AppointmentViewset(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated, IsDoctor]
+    serializer_class = AppoitmentSerializer
+    queryset = AppointmentModel.objects.all()
+
+    @action(methods=['POST'], detail=False, url_path="daytimeslots")
+    def daytimeslots(self, request):
+        # create daytimeslots
+        if(request.method == 'POST'):
+            # {
+            #     days:['Sunday','Monday'],
+            #     timeslots:[{'start_time','end_time'}]
+
+            # }
+
+            data = request.data
+            days = data.get("days", None)
+            timeslots = data.get("timeslots", None)
+            deletePrev = data.get("deletePrev", False)
+
+            if(days == None or timeslots == None):
+                return Response({'msg': 'No Days or Timeslots Selected'}, status=status.HTTP_400_BAD_REQUEST)
+
+            daysAddedCount = 0
+            deleted = 0
+            for day in days:
+                day = day.lower()
+                dayAdded = False
+                timeslotCounter = 0
+
+                # Deleting Previous Fields
+                if(deletePrev):
+                    prevTimeslots = TimeSlot.objects.filter(day=day)
+                    deleted += prevTimeslots.count()
+                    prevTimeslots.delete()
+
+                for timeslot in timeslots:
+                    start_time = timeslot.get("startTime", None)
+                    end_time = timeslot.get("endTime", None)
+                    valid_days = [day.lower() for day in [
+                        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Saturday', 'Friday']]
+
+                    if(start_time == None or end_time == None):
+                        continue
+
+                    if(not(day in valid_days)):
+                        continue
+
+                    timeslot = TimeSlot(
+                        day=day, start_time=start_time, end_time=end_time, doctor=request.user)
+                    timeslot.save()
+
+                    dayAdded = True
+                    timeslotCounter += 1
+
+                if(dayAdded == True):
+                    daysAddedCount += 1
+
+            return Response({'msg': f"{timeslotCounter} TimeSlots Added for {daysAddedCount} days. Deleted {deleted} Timeslots"}, status=status.HTTP_200_OK)
 
 
 class PasswordReset(APIView):

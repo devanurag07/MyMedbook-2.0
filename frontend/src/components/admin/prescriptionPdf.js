@@ -11,7 +11,6 @@ import { saveAs } from "file-saver";
 
 const PrescriptionPdf = ({ medicine_list_, data, doctor_info, callBack }) => {
   let medicine_list = medicine_list_ ? medicine_list_ : [];
-
   let callbackFunc = callBack ? callBack : () => {};
 
   const options = {

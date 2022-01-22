@@ -67,8 +67,9 @@ class SendPrescriptionUpdated extends Component {
       prescription: null,
       prescriptionsData: [],
       customPrescriptionForm: {
-        drug_to_taken: "",
+        note: "",
         medicine_name: "",
+        drug_to_taken: 1,
       },
 
       printPdfModal: false,
@@ -214,28 +215,28 @@ class SendPrescriptionUpdated extends Component {
     let data = this.state.prescriptionsData;
     let customFormData = this.state.customPrescriptionForm;
 
-    if (
-      customFormData.drug_to_taken === "" ||
-      customFormData.medicine_name === ""
-    ) {
+    if (customFormData.note === "" || customFormData.medicine_name === "") {
       this.notify("Please fill all required values");
     } else {
       const medicine_name = customFormData.medicine_name;
+      const note = customFormData.note;
       const drug_to_taken = customFormData.drug_to_taken;
 
       const index = this.getMedIndex();
 
       data.push({
         idx: index,
-        drug_to_taken: drug_to_taken,
+        note: note,
         medicine_name: medicine_name,
+        drug_to_taken: drug_to_taken,
         exists: false,
       });
 
       this.setState({
         customPrescriptionForm: {
-          drug_to_taken: "",
+          note: "",
           medicine_name: "",
+          drug_to_taken: 1,
         },
       });
 
@@ -680,17 +681,31 @@ class SendPrescriptionUpdated extends Component {
                       </div>
                       <div className="col-sm-8">
                         <div className="form-group">
-                          <label htmlFor="drug_to_taken" className="required">
+                          <label htmlFor="quantity" className="required">
+                            Quantity per day
+                          </label>
+                          <AvInput
+                            bsSize="sm"
+                            type="number"
+                            name="drug_to_taken"
+                            value={
+                              this.state.customPrescriptionForm.drug_to_taken
+                            }
+                            onChange={this.handleChange.bind(this)}
+                          ></AvInput>
+                        </div>
+                      </div>
+                      <div className="col-sm-8">
+                        <div className="form-group">
+                          <label htmlFor="note" className="required">
                             Directions of Intake
                           </label>
                           <AvInput
                             bsSize="sm"
                             type="textarea"
-                            name="drug_to_taken"
+                            name="note"
                             rows={50}
-                            value={
-                              this.state.customPrescriptionForm.drug_to_taken
-                            }
+                            value={this.state.customPrescriptionForm.note}
                             onChange={this.handleChange.bind(this)}
                             style={{ marginBottom: "0px", height: "138px" }}
                           ></AvInput>
@@ -831,7 +846,7 @@ const MedicineListItem = ({ prescription, idx, removeItem }) => {
     ? prescription.name
     : prescription.medicine_name;
 
-  const drug_to_taken = prescription.drug_to_taken;
+  const note = prescription.note;
   const [showDetails, setShowDetails] = useState(false);
 
   const prescriptionInfoStyle = showDetails
@@ -862,7 +877,7 @@ const MedicineListItem = ({ prescription, idx, removeItem }) => {
 
         <div className="col-sm-12">
           <div className="col-sm-6"> Direction OF Intake :</div>
-          <div className="col-sm-6"> {drug_to_taken}</div>
+          <div className="col-sm-6"> {note}</div>
         </div>
       </div>
     </div>

@@ -104,3 +104,41 @@ class Review(models.Model):
     review_text = models.CharField(max_length=2000)
     created_by = models.ForeignKey(
         QMUser, related_name="sent_reviews", on_delete=models.CASCADE)
+
+
+# Appoitment Model
+class AppointmentModel(models.Model):
+    appointmentDate = models.DateField()
+    charges = models.PositiveIntegerField()
+    patient = models.ForeignKey(
+        QMUser, on_delete=models.CASCADE, related_name="appointments")
+
+    doctor = models.ForeignKey(
+        QMUser, on_delete=models.CASCADE, related_name="d_appointments")
+
+
+# Appoitment Time Slots Model
+
+
+class TimeSlot(models.Model):
+    choices = (("Monday", "Monday"),
+               ("Tuesday", "Tuesday"),
+               ("Wednesday", "Wednesday"),
+               ("Thursday", "Thursday"),
+               ("Friday", "Friday"),
+               ("Saturday", "Saturday"),
+               )
+    day = models.CharField(max_length=255, choices=choices)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    doctor = models.ForeignKey(
+        QMUser, on_delete=models.CASCADE, related_name="daytimeslots")
+
+
+class DateTimeSlot(models.Model):
+    date = models.DateField(blank=False, null=False)
+    time = models.TimeField()
+
+    doctor = models.ForeignKey(
+        QMUser, on_delete=models.CASCADE, related_name="datetimeslots")
