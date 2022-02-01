@@ -30,6 +30,10 @@ import AskAccessPermission from "./AdminPanel/AskAccessPermission";
 import VerifyAccessOtp from "./AdminPanel/VerifyAccessOtp";
 import InvoicePage from "./DoctorPanel/BillingPages/InvoicePage";
 import ScheduleDayWiseForm from "./DoctorPanel/Appoitment/Schedules/ScheduleDayWiseForm";
+import ScheduleDateWiseForm from "./DoctorPanel/Appoitment/Schedules/ScheduleDateWiseForm";
+import ScheduleRouter from "./DoctorPanel/Appoitment/Schedules/ScheduleRouter";
+import DayTimeSlots from "./DoctorPanel/Appoitment/Schedules/DayTimeSlots";
+import DateTimeSlots from "./DoctorPanel/Appoitment/Schedules/DateTimeSlots";
 
 const loading = () => <div></div>;
 class Admin extends Component {
@@ -112,7 +116,31 @@ class Admin extends Component {
 
           {/* Appoitment */}
 
-          <Route exact path="/app/schedules" component={ScheduleDayWiseForm} />
+          {/* <Route exact path="/app/schedules" component={ScheduleDayWiseForm} /> */}
+          <Route exact path="/app/schedules" component={ScheduleRouter} />
+          <Route
+            exact
+            path="/app/schedules/daywiseform"
+            component={ScheduleDayWiseForm}
+          />
+
+          <Route
+            exact
+            path="/app/schedules/datewiseform/"
+            component={ScheduleDateWiseForm}
+          />
+
+          <Route
+            exact
+            path="/app/schedules/daytimeslots/"
+            component={DayTimeSlots}
+          />
+
+          <Route
+            exact
+            path="/app/schedules/dateimeslots/"
+            component={DateTimeSlots}
+          />
         </Switch>
       </React.Fragment>
     );

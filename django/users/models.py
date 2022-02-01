@@ -138,7 +138,8 @@ class TimeSlot(models.Model):
 
 class DateTimeSlot(models.Model):
     date = models.DateField(blank=False, null=False)
-    time = models.TimeField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
     doctor = models.ForeignKey(
         QMUser, on_delete=models.CASCADE, related_name="datetimeslots")

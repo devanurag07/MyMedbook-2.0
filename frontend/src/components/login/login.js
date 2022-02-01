@@ -9,7 +9,8 @@ import { Alert } from "reactstrap";
 import { NavLink } from "react-router-dom";
 import { isUserAuthenticated } from "../../helpers/authUtils";
 import { Redirect } from "react-router-dom";
-import Particles from "react-particles-js";
+import Particles from "react-tsparticles";
+
 import { AvForm, AvInput } from "availity-reactstrap-validation";
 class Login extends Component {
   constructor(props) {

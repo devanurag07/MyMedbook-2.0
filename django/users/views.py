@@ -1,5 +1,7 @@
 import datetime
+from os import stat, times
 from re import T
+from shutil import ReadError
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import Group
 from django.db.models import Q
@@ -19,9 +21,9 @@ from common.models import OtpRequests
 from common.fastsms import send_message
 # from django.users.permissions import IsDoctor
 from users.permissions import IsDoctor
-from users.models import AppointmentModel, TimeSlot, UserProfile
+from users.models import AppointmentModel, DateTimeSlot, TimeSlot, UserProfile
 from users.models import Review
-from users.serializers import AccessRequestSerializer, AppoitmentSerializer
+from users.serializers import AccessRequestSerializer, AppoitmentSerializer, TimeSlotSerializer
 from queues.models import Prescription
 from queues.serializers import PrescriptionSerializer
 from generics.constants import CUSTOMERS_USER_TYPE
@@ -38,6 +40,7 @@ from django.core.files.base import ContentFile
 import random
 
 from io import BytesIO
+import datetime
 
 
 def jwt_response_payload_handler(token, user=None, request=None):
@@ -659,8 +662,21 @@ class AppointmentViewset(viewsets.ModelViewSet):
     serializer_class = AppoitmentSerializer
     queryset = AppointmentModel.objects.all()
 
-    @action(methods=['POST'], detail=False, url_path="daytimeslots")
+    @action(methods=['POST', 'GET'], detail=False, url_path="daytimeslots")
     def daytimeslots(self, request):
+
+        if(request.method == 'GET'):
+            # gettimesots
+            day = request.GET.get("day", None)
+
+            if(day == None):
+                return Response({"msg": "No days selected"}, status=status.HTTP_400_BAD_REQUEST)
+
+            timeslots = TimeSlot.objects.filter(day=day.lower())
+            timeslotsData = TimeSlotSerializer(timeslots, many=True).data
+
+            return Response({"timeslots": timeslotsData}, status=status.HTTP_200_OK)
+
         # create daytimeslots
         if(request.method == 'POST'):
             # {
@@ -703,7 +719,7 @@ class AppointmentViewset(viewsets.ModelViewSet):
                         continue
 
                     timeslot = TimeSlot(
-                        day=day, start_time=start_time, end_time=end_time, doctor=request.user)
+                        day=day.lower(), start_time=start_time, end_time=end_time, doctor=request.user)
                     timeslot.save()
 
                     dayAdded = True
@@ -713,6 +729,80 @@ class AppointmentViewset(viewsets.ModelViewSet):
                     daysAddedCount += 1
 
             return Response({'msg': f"{timeslotCounter} TimeSlots Added for {daysAddedCount} days. Deleted {deleted} Timeslots"}, status=status.HTTP_200_OK)
+
+    @action(methods=['POST', 'GET'], detail=False, url_path="datetimeslots")
+    def datetimeslots(self, request):
+        # create daytimeslots
+        if(request.method == 'POST'):
+            # {
+            #     days:['Sunday','Monday'],
+            #     timeslots:[{'start_time','end_time'}]
+
+            # }
+
+            data = request.data
+            timeslots = data.get("timeslots", None)
+            deletePrev = data.get("deletePrev", False)
+            timespan = data.get("timespan", None)
+
+            if(timespan == None or timeslots == None):
+                return Response({'msg': 'No Days or Timeslots Selected'}, status=status.HTTP_400_BAD_REQUEST)
+
+            fromDate = timespan.get("fromDate", None)
+            toDate = timespan.get("toDate", None)
+
+            if(fromDate == None or toDate == None):
+                return Response({'msg': 'No Days or Timeslots Selected'}, status=status.HTTP_400_BAD_REQUEST)
+
+            format = "%Y-%m-%d"
+            fromDateObj = datetime.datetime.strptime(fromDate, format)
+            toDateObj = datetime.datetime.strptime(toDate, format)
+
+            deltaDays = (toDateObj-fromDateObj).days
+            if(fromDateObj > toDateObj):
+                return Response({'msg': 'Invalid Timespan'}, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                if(deltaDays > 30):
+                    return Response({'msg': 'Can"t select more than 30 days '}, status=status.HTTP_400_BAD_REQUEST)
+
+            timespanDates = []
+            for i in range(0, abs(deltaDays)+1):
+                nextDate = fromDateObj+datetime.timedelta(days=i)
+                timespanDates.append(nextDate)
+
+            daysAddedCount = 0
+            deleted = 0
+
+            for date in timespanDates:
+                dayAdded = False
+                timeslotCounter = 0
+
+                # Deleting Previous Fields
+                if(deletePrev):
+                    prevTimeslots = DateTimeSlot.objects.filter(date=date)
+                    deleted += prevTimeslots.count()
+                    prevTimeslots.delete()
+
+                for timeslot in timeslots:
+                    start_time = timeslot.get("startTime", None)
+                    end_time = timeslot.get("endTime", None)
+
+                    if(start_time == None or end_time == None):
+                        continue
+
+                    timeslot = DateTimeSlot(
+                        date=date, start_time=start_time, end_time=end_time, doctor=request.user)
+
+                    timeslot.save()
+
+                    dayAdded = True
+                    timeslotCounter += 1
+
+                if(dayAdded == True):
+                    daysAddedCount += 1
+
+            return Response({'msg': f"{timeslotCounter} TimeSlots Added for {daysAddedCount} dates. Deleted {deleted} Timeslots"}, status=status.HTTP_200_OK)
 
 
 class PasswordReset(APIView):

@@ -6,7 +6,8 @@ import { AvForm, AvInput } from "availity-reactstrap-validation";
 import { Alert } from "reactstrap";
 import { postCall } from "../helpers/axiosUtils";
 import { BASE_URL } from "../helpers/constants";
-import Particles from "react-particles-js";
+import Particles from "react-tsparticles";
+
 import { toast } from "react-toastify";
 
 class ResetPassword extends Component {

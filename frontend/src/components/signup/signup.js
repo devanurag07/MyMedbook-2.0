@@ -10,7 +10,8 @@ import { AvForm, AvInput } from "availity-reactstrap-validation";
 import { Alert, FormFeedback } from "reactstrap";
 import { postCall } from "../../helpers/axiosUtils";
 import { BASE_URL } from "../../helpers/constants";
-import Particles from "react-particles-js";
+import Particles from "react-tsparticles";
+
 class Register extends Component {
   constructor(props) {
     super(props);

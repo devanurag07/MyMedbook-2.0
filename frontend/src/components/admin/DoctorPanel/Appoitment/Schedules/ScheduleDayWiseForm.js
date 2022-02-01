@@ -1,9 +1,11 @@
 import React, { useState } from "react";
-import { Paper, Grid, Typography, Checkbox } from "@mui/material";
+import { Paper, Grid, Typography, Checkbox, IconButton } from "@mui/material";
 import { makeStyles } from "@material-ui/core";
 import { postCall } from "../../../../../helpers/axiosUtils";
 import { BASE_URL } from "../../../../../helpers/constants";
 import { toast } from "react-toastify";
+
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -140,6 +142,9 @@ const ScheduleDayWiseForm = () => {
     console.log(formData);
     postCall(`${BASE_URL}api/appointment/daytimeslots/`, formData)
       .then((resp) => {
+        if (resp.status == 200) {
+          toast.success(resp.data.msg);
+        }
         console.log(resp.data);
       })
       .catch((err) => {
@@ -150,6 +155,9 @@ const ScheduleDayWiseForm = () => {
   return (
     <div>
       <Paper className={classes.root}>
+        <h6 className="primary-color mt-3 mb-3">
+          Add Schedule Timings - Day Wise
+        </h6>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <h6 className="primary-color mt-3 mb-3">Select Days</h6>
           <h6>
@@ -268,9 +276,19 @@ const ScheduleDayWiseForm = () => {
           })}
 
           <div className="btnContainer">
-            <button className="btn btn-primary btn-sm mt-3" onClick={addRow}>
+            {/* <button className="btn btn-primary btn-sm mt-3" onClick={addRow}>
               Add row
-            </button>
+            </button> */}
+
+            <IconButton onClick={addRow} style={{ padding: "10px 0px" }}>
+              <AddCircleIcon color="primary" fontSize="large" />
+              <div
+                className="label"
+                style={{ fontSize: "16px", fontWeight: "505" }}
+              >
+                Add Row
+              </div>
+            </IconButton>
           </div>
 
           <div className="btnContainer" style={{ marginTop: "3em" }}>
