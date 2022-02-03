@@ -188,6 +188,7 @@ export class addQueue extends Component {
       customer: e.value,
     });
   }
+
   searchCustomer(event) {
     if (!event.query.trim().length) {
       this.setState((state) => ({
