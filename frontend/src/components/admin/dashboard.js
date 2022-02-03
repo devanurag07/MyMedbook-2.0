@@ -28,6 +28,7 @@ import { AutoComplete } from "primereact/autocomplete";
 import axios from "axios";
 
 import Home from "./UserPanel/Home";
+import { Grid, Paper } from "@mui/material";
 
 class Dashboard extends Component {
   recordPerPage = 15;
@@ -202,7 +203,7 @@ class Dashboard extends Component {
         },
         series: [
           {
-            name: "Queue",
+            name: "",
             color: "#0A58CA",
             data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6],
           },
@@ -255,7 +256,9 @@ class Dashboard extends Component {
             enabled: false,
           },
           chart: {
-            type: "column",
+            type: "area",
+            height: "280px",
+            // width: "200px",
           },
           xAxis: {
             categories: responseData.day_choices,
@@ -289,7 +292,6 @@ class Dashboard extends Component {
           },
           series: [
             {
-              name: "Queue",
               color: "#0A58CA",
               data: responseData.days_data,
             },
@@ -615,7 +617,7 @@ class Dashboard extends Component {
               >
                 This Week Customer Visit
               </h5>
-              <div className="col-9">
+              <div className="col-6">
                 <HighchartsReact
                   highcharts={Highcharts}
                   options={this.state.chartOptions}
@@ -629,7 +631,79 @@ class Dashboard extends Component {
           <React.Fragment>
             {this.props.user.document_verified && (
               <React.Fragment>
-                <div className="row d-card">
+                <Paper elevation={1} className="header-paper">
+                  <div className="row header-card-row">
+                    <div className="card card-new">
+                      <Grid container>
+                        <Grid item xs={4}>
+                          <div className="avatar-lg rounded-circle cbg-dark">
+                            <img
+                              className="icon-circle avatar-title"
+                              src="/img/total.svg"
+                              height="52"
+                              width="52"
+                            ></img>
+                          </div>
+                        </Grid>
+                        <Grid item xs={8}>
+                          <div className="card-body">
+                            <div className="card-text-normal">
+                              Total Patients
+                            </div>
+                            <div className="card-text-bold">80</div>
+                            <div className="card-text-date">9 jan 2022</div>
+                          </div>
+                        </Grid>
+                      </Grid>
+                    </div>
+                    <div className="card card-new">
+                      <Grid container>
+                        <Grid item xs={4}>
+                          <div className="avatar-lg rounded-circle cbg-warning">
+                            <img
+                              className="icon-circle avatar-title"
+                              src="/img/schedule.svg"
+                              height="52"
+                              width="52"
+                            ></img>
+                          </div>
+                        </Grid>
+                        <Grid item xs={8}>
+                          <div className="card-body">
+                            <div className="card-text-normal">
+                              Today Patients
+                            </div>
+                            <div className="card-text-bold">20</div>
+                            <div className="card-text-date">9 jan 2022</div>
+                          </div>
+                        </Grid>
+                      </Grid>
+                    </div>
+                    <div className="card card-new" style={{ border: "none" }}>
+                      <Grid container>
+                        <Grid item xs={4}>
+                          <div className="avatar-lg rounded-circle cbg-success">
+                            <img
+                              className="icon-circle avatar-title"
+                              src="/img/checked-dash.svg"
+                              height="52"
+                              width="52"
+                            ></img>
+                          </div>
+                        </Grid>
+                        <Grid item xs={8}>
+                          <div className="card-body">
+                            <div className="card-text-normal">Appoiments</div>
+                            <div className="card-text-bold">80</div>
+                            <div className="card-text-date">9 jan 2022</div>
+                          </div>
+                        </Grid>
+                      </Grid>
+                    </div>
+                  </div>
+                </Paper>
+                {/* <div className="row d-card">
+
                   <div className="col ms-2 me-2 mb-2">
                     <div className="widget-rounded-circle card">
                       <div className="card-body">
@@ -758,7 +832,7 @@ class Dashboard extends Component {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
               </React.Fragment>
             )}
 
@@ -821,39 +895,43 @@ class Dashboard extends Component {
                 )}
                 {this.props.user.document_verified && (
                   <React.Fragment>
-                    <div className="row">
-                      <div className="col-9">
+                    <div
+                      className="row"
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div className="col-6">
                         <HighchartsReact
                           highcharts={Highcharts}
                           options={this.state.chartOptions}
                         />
                       </div>
-                      <div className="col-3">
+                      <div className="col-4">
                         <div className="row">
                           <div className="col-12 max-w">
                             <h5 className="previous">Previous Months</h5>
-                            <div className="widget-rounded-circle card">
+                            <div className="card previous-month-card">
                               <div className="card-body">
                                 <div className="row">
                                   <div className="col-6">
-                                    <div className="avatar-lg rounded-circle cbg-light">
-                                      <img
-                                        className="icon-circle avatar-title"
-                                        src="/img/patient-_1_.svg"
-                                        height="52"
-                                        width="52"
-                                      ></img>
-                                    </div>
-                                  </div>
-                                  <div className="col-6">
-                                    <div className="text-end">
-                                      <p className="text-muted mb-1 text-truncate previous fw-500">
+                                    <div className="text-start">
+                                      <p
+                                        className="text-muted mb-1 text-truncate previous text-gray"
+                                        style={{ color: "grey !important" }}
+                                      >
                                         {this.state.highcharts
                                           ? this.state.highcharts
                                               .month_choices[0]
                                           : ""}
                                       </p>
-                                      <h3 className="text-dark previous fw-500">
+                                      <div className="col-12 text-start">
+                                        <p className="text-muted fs-07 mb-0 text-truncate">
+                                          Total Patients
+                                        </p>
+                                      </div>
+                                      <h3 className="text-dark previous fw-500 text-black">
                                         <span data-plugin="counterup">
                                           {this.state.highcharts
                                             ? this.state.highcharts
@@ -863,20 +941,6 @@ class Dashboard extends Component {
                                       </h3>
                                     </div>
                                   </div>
-                                  <div className="col-12 text-end">
-                                    <p className="text-muted fs-07 mb-0 text-truncate">
-                                      Total Patients
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="col-12 mt-4 max-w">
-                            <div className="widget-rounded-circle card">
-                              <div className="card-body">
-                                <div className="row">
                                   <div className="col-6">
                                     <div className="avatar-lg rounded-circle cbg-light">
                                       <img
@@ -887,15 +951,32 @@ class Dashboard extends Component {
                                       ></img>
                                     </div>
                                   </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="col-12 max-w mt-2">
+                            <div className="card previous-month-card">
+                              <div className="card-body">
+                                <div className="row">
                                   <div className="col-6">
-                                    <div className="text-end">
-                                      <p className="previous mb-1 text-truncate fw-500">
+                                    <div className="text-start">
+                                      <p
+                                        className="text-muted mb-1 text-truncate previous text-gray"
+                                        style={{ color: "grey !important" }}
+                                      >
                                         {this.state.highcharts
                                           ? this.state.highcharts
                                               .month_choices[1]
                                           : ""}
                                       </p>
-                                      <h3 className="text-dark previous fw-500">
+                                      <div className="col-12 text-start">
+                                        <p className="text-muted fs-07 mb-0 text-truncate">
+                                          Total Patients
+                                        </p>
+                                      </div>
+                                      <h3 className="text-dark previous fw-500 text-black">
                                         <span data-plugin="counterup">
                                           {this.state.highcharts
                                             ? this.state.highcharts
@@ -905,10 +986,15 @@ class Dashboard extends Component {
                                       </h3>
                                     </div>
                                   </div>
-                                  <div className="col-12 text-end">
-                                    <p className="text-muted fs-07 mb-0 text-truncate">
-                                      Total Patients
-                                    </p>
+                                  <div className="col-6">
+                                    <div className="avatar-lg rounded-circle cbg-light">
+                                      <img
+                                        className="icon-circle avatar-title"
+                                        src="/img/patient-_1_.svg"
+                                        height="52"
+                                        width="52"
+                                      ></img>
+                                    </div>
                                   </div>
                                 </div>
                               </div>

@@ -10,6 +10,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: "2em",
+
+    "& .edit-btn a": {
+      background: "#a6d5faa6",
+      color: "#00a0df",
+      fontWeight: "505",
+      border: "none",
+    },
     "& .day": {
       border: "1px solid black",
       padding: "0.5em 1.4em",
@@ -137,6 +144,10 @@ const ScheduleDateWiseForm = () => {
       })
       .catch((err) => {
         // console.log(err.response.data);
+
+        if (err.response.status == 400) {
+          toast.error(err.response.data.msg);
+        }
         console.log(err);
         console.log(err.response);
       });
@@ -152,7 +163,31 @@ const ScheduleDateWiseForm = () => {
   return (
     <div>
       <Paper className={classes.root}>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <h6 className="primary-color mt-3 mb-3">
+            Add Schedule Timings - Day Wise
+          </h6>
+          <div className="edit-btn">
+            <a
+              className="btn btn-primary btn-sm"
+              href="/app/schedules/datetimeslots/"
+            >
+              TimeSlots
+            </a>
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "2em",
+          }}
+        >
           <h6>
             Delete Previous{" "}
             <Checkbox

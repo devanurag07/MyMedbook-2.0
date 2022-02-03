@@ -34,6 +34,7 @@ import ScheduleDateWiseForm from "./DoctorPanel/Appoitment/Schedules/ScheduleDat
 import ScheduleRouter from "./DoctorPanel/Appoitment/Schedules/ScheduleRouter";
 import DayTimeSlots from "./DoctorPanel/Appoitment/Schedules/DayTimeSlots";
 import DateTimeSlots from "./DoctorPanel/Appoitment/Schedules/DateTimeSlots";
+import Billing from "./DoctorPanel/Appoitment/Billing/Billing";
 
 const loading = () => <div></div>;
 class Admin extends Component {
@@ -117,7 +118,7 @@ class Admin extends Component {
           {/* Appoitment */}
 
           {/* <Route exact path="/app/schedules" component={ScheduleDayWiseForm} /> */}
-          <Route exact path="/app/schedules" component={ScheduleRouter} />
+          <Route exact path="/app/schedules" component={DayTimeSlots} />
           <Route
             exact
             path="/app/schedules/daywiseform"
@@ -138,9 +139,11 @@ class Admin extends Component {
 
           <Route
             exact
-            path="/app/schedules/dateimeslots/"
+            path="/app/schedules/datetimeslots/"
             component={DateTimeSlots}
           />
+
+          <Route exact path="/app/billing/" component={Billing} />
         </Switch>
       </React.Fragment>
     );

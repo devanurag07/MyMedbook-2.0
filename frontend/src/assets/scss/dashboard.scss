@@ -139,3 +139,72 @@
     text-align: center;
   }
 }
+
+// New Cards
+
+.card-new {
+  // max-width: 260px;
+  flex: 1 1 0px;
+  .MuiGrid-item {
+    display: flex;
+    align-items: center;
+  }
+  border: none;
+  box-shadow: none;
+
+  border-right: 1px solid gray;
+  border-radius: 0;
+}
+
+.header-card-row {
+  margin: 1em;
+  padding: 1em;
+  box-shadow: 1px 1px 6px grey;
+}
+
+.header-paper {
+  box-shadow: none;
+}
+
+.card-text-normal {
+  font-weight: 405;
+}
+
+.card-text-bold {
+  font-weight: 606;
+  font-size: 1.2rem;
+}
+
+.card-text-date {
+  font-size: 0.8em;
+  color: gray;
+}
+
+// .previous month cards
+.previous-month-card {
+  box-shadow: none;
+  box-shadow: none;
+  box-shadow: -1px 2px 5px 0px #c5c5c5;
+  border: none;
+  border-radius: none !important;
+  border: none;
+  border-radius: none !important;
+  .text-gray {
+    font-weight: 505;
+    color: gray !important;
+  }
+
+  .max-w {
+    max-width: none !important;
+  }
+  .card-body {
+    padding: 0.2em 2em !important;
+  }
+  // padding: 0em 5em;
+
+  .text-black {
+    font-weight: 506;
+    font-size: 1.6em;
+    color: rgb(20, 20, 20) !important;
+  }
+}

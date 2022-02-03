@@ -17,6 +17,17 @@ const useStyles = makeStyles((theme) => ({
       fontWeight: "500",
       borderRadius: "0.2em",
     },
+    "& .edit-btn": {
+      display: "flex",
+      justifyContent: "end",
+      flexDirection: "column",
+    },
+    "& .edit-btn a": {
+      background: "#a6d5faa6",
+      color: "#00a0df",
+      fontWeight: "505",
+      border: "none",
+    },
     "& .selected": {
       color: "white",
       background: "#23cb11",
@@ -155,10 +166,33 @@ const ScheduleDayWiseForm = () => {
   return (
     <div>
       <Paper className={classes.root}>
-        <h6 className="primary-color mt-3 mb-3">
-          Add Schedule Timings - Day Wise
-        </h6>
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "2em",
+          }}
+        >
+          <h6 className="primary-color mt-3 mb-3">
+            Add Schedule Timings - Day Wise
+          </h6>
+          <div className="edit-btn">
+            <a
+              className="btn btn-primary btn-sm"
+              href="/app/schedules/daytimeslots/"
+            >
+              TimeSlots
+            </a>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "2em",
+          }}
+        >
           <h6 className="primary-color mt-3 mb-3">Select Days</h6>
           <h6>
             Delete Previous{" "}

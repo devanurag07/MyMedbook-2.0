@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from django.db import models
 from django.db.models import Q, fields
 from rest_framework import serializers
-from users.models import AccessRequest, AppointmentModel, TimeSlot
+from users.models import AccessRequest, AppointmentModel, DateTimeSlot, TimeSlot
 from queues.serializers import PrescriptionSerializer
 
 from users.models import QMUser, UserProfile, Roles
@@ -281,4 +281,10 @@ class AppoitmentSerializer(serializers.ModelSerializer):
 class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeSlot
+        fields = "__all__"
+
+
+class DateTimeSlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DateTimeSlot
         fields = "__all__"

@@ -1,5 +1,6 @@
 import datetime
 from os import stat, times
+from pstats import Stats
 from re import T
 from shutil import ReadError
 from django.contrib.auth.decorators import permission_required
@@ -23,7 +24,7 @@ from common.fastsms import send_message
 from users.permissions import IsDoctor
 from users.models import AppointmentModel, DateTimeSlot, TimeSlot, UserProfile
 from users.models import Review
-from users.serializers import AccessRequestSerializer, AppoitmentSerializer, TimeSlotSerializer
+from users.serializers import AccessRequestSerializer, AppoitmentSerializer, DateTimeSlotSerializer, TimeSlotSerializer
 from queues.models import Prescription
 from queues.serializers import PrescriptionSerializer
 from generics.constants import CUSTOMERS_USER_TYPE
@@ -672,7 +673,8 @@ class AppointmentViewset(viewsets.ModelViewSet):
             if(day == None):
                 return Response({"msg": "No days selected"}, status=status.HTTP_400_BAD_REQUEST)
 
-            timeslots = TimeSlot.objects.filter(day=day.lower())
+            timeslots = TimeSlot.objects.filter(
+                day=day.lower(), doctor=request.user)
             timeslotsData = TimeSlotSerializer(timeslots, many=True).data
 
             return Response({"timeslots": timeslotsData}, status=status.HTTP_200_OK)
@@ -702,7 +704,8 @@ class AppointmentViewset(viewsets.ModelViewSet):
 
                 # Deleting Previous Fields
                 if(deletePrev):
-                    prevTimeslots = TimeSlot.objects.filter(day=day)
+                    prevTimeslots = TimeSlot.objects.filter(
+                        day=day, doctor=request.user)
                     deleted += prevTimeslots.count()
                     prevTimeslots.delete()
 
@@ -732,6 +735,34 @@ class AppointmentViewset(viewsets.ModelViewSet):
 
     @action(methods=['POST', 'GET'], detail=False, url_path="datetimeslots")
     def datetimeslots(self, request):
+
+        if(request.method == 'GET'):
+            date = request.GET.get("date", None)
+
+            if(date == None):
+                doctor_dates = DateTimeSlot.objects.filter(
+                    doctor=request.user).order_by("date")
+
+                dates = list([str(date[0])
+                             for date in doctor_dates.values_list("date")])
+
+                uniqueDates = []
+
+                for date in dates:
+                    if(date in uniqueDates):
+                        continue
+                    uniqueDates.append(date)
+
+                return Response({"dates": uniqueDates}, status=status.HTTP_200_OK)
+
+            else:
+                timeslots = DateTimeSlot.objects.filter(
+                    date=date, doctor=request.user).order_by("start_time")
+                datetimeslots = DateTimeSlotSerializer(
+                    timeslots, many=True).data
+
+                return Response({"timeslots": datetimeslots}, status=status.HTTP_200_OK)
+
         # create daytimeslots
         if(request.method == 'POST'):
             # {
@@ -754,9 +785,9 @@ class AppointmentViewset(viewsets.ModelViewSet):
             if(fromDate == None or toDate == None):
                 return Response({'msg': 'No Days or Timeslots Selected'}, status=status.HTTP_400_BAD_REQUEST)
 
-            format = "%Y-%m-%d"
-            fromDateObj = datetime.datetime.strptime(fromDate, format)
-            toDateObj = datetime.datetime.strptime(toDate, format)
+            formatDate = "%Y-%m-%d"
+            fromDateObj = datetime.datetime.strptime(fromDate, formatDate)
+            toDateObj = datetime.datetime.strptime(toDate, formatDate)
 
             deltaDays = (toDateObj-fromDateObj).days
             if(fromDateObj > toDateObj):
@@ -780,7 +811,8 @@ class AppointmentViewset(viewsets.ModelViewSet):
 
                 # Deleting Previous Fields
                 if(deletePrev):
-                    prevTimeslots = DateTimeSlot.objects.filter(date=date)
+                    prevTimeslots = DateTimeSlot.objects.filter(
+                        date=date, doctor=request.user)
                     deleted += prevTimeslots.count()
                     prevTimeslots.delete()
 

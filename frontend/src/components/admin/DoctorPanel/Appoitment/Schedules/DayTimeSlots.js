@@ -8,10 +8,23 @@ import { BASE_URL } from "../../../../../helpers/constants";
 const useStyles = makeStyles((theme) => ({
   root: {
     padding: "2em",
+
+    "& .edit-btn": {
+      display: "flex",
+      justifyContent: "end",
+      flexDirection: "column",
+    },
+    "& .edit-btn a": {
+      background: "#a6d5faa6",
+      color: "#00a0df",
+      fontWeight: "505",
+      border: "none",
+    },
   },
 
   daysSelector: {
     display: "flex",
+    marginTop: "1em",
     justifyContent: "space-between",
     "& .day": {
       padding: "1em",
@@ -77,7 +90,17 @@ const DayTimeSlots = () => {
   return (
     <div>
       <Paper className={classes.root}>
-        <h6 className="primary-font-color mt-3 mb-3">Day Wise TimeSlots</h6>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <h6 className="primary-font-color mt-3 mb-3">Day Wise TimeSlots</h6>
+          <div className="edit-btn">
+            <a
+              className="btn btn-primary btn-sm"
+              href="/app/schedules/datetimeslots/"
+            >
+              DateWise
+            </a>
+          </div>
+        </div>
 
         <div className={classes.daysSelector}>
           {days.map((day) => {
@@ -97,7 +120,23 @@ const DayTimeSlots = () => {
           })}
         </div>
 
-        <h6 className="primary-font-color mt-3 mb-3">TimeSlots</h6>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginTop: "1em",
+          }}
+        >
+          <h6 className="primary-font-color mt-3 mb-3">TimeSlots</h6>
+          <div className="edit-btn">
+            <a
+              className="btn btn-primary btn-sm"
+              href="/app/schedules/daywiseform/"
+            >
+              Edit
+            </a>
+          </div>
+        </div>
 
         <div className={classes.timeslots}>
           {timeslots.map((timeslot, index) => {

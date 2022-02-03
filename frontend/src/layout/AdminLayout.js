@@ -202,6 +202,26 @@ class AdminLayout extends Component {
                         </li>
                         <li className="nav-item ms-4">
                           <NavLink
+                            to="/app/billing"
+                            className="nav-link ps-1"
+                            activeClassName="active"
+                            aria-expanded="true"
+                          >
+                            <img
+                              src="/img/prescription.svg"
+                              className="in-active"
+                              alt="logo"
+                            />
+                            <img
+                              className="active"
+                              src="/img/prescription-active.svg"
+                              alt="logo"
+                            />
+                            <span className="ms-2">Billing</span>
+                          </NavLink>
+                        </li>
+                        <li className="nav-item ms-4">
+                          <NavLink
                             to="/app/schedules"
                             className="nav-link ps-1"
                             activeClassName="active"
@@ -371,11 +391,11 @@ class AdminLayout extends Component {
             <IconButton onClick={this.toogleSidebar}>
               <MenuOpenOutlinedIcon color="primary" />
             </IconButton>
-            <div className="content mt-4 me-4">
+            <div className="content me-4">
               <Container fluid className="ms-2 bd me-2">
                 <div className="app-header-inner">
                   <div className="app-header-content">
-                    <div className="row ps-3 pe-3 pt-2 pb-2">
+                    <div className="row ps-3 pe-3 pb-2">
                       {/* <div className="col-auto">
                                                 <a id="sidepanel-toggler" className="sidepanel-toggler d-inline-block d-xl-none" href="#">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" role="img"><title>Menu</title><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg>
